@@ -238,7 +238,7 @@ fn clone_destinations() -> &'static std::sync::Mutex<Vec<String>> {
 
 /// A comparable form of a folder path: symlinks and junctions resolved when the folder exists,
 /// forward slashes, no Windows `\\?\` prefix, no trailing slash, and lower case on Windows.
-fn allow_key(p: &str) -> String {
+pub(crate) fn allow_key(p: &str) -> String {
     let path = Path::new(p);
     // Resolve links through the deepest part that exists, then add the rest back unchanged: a path that
     // does not exist yet below a junction must still be judged by where the junction leads.

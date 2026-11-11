@@ -1801,7 +1801,7 @@ pub async fn save_resolution(path: String, file: String, content: String) -> Res
 /// The file manager and terminal launchers must only ever be given an existing folder. Explorer and
 /// `open` would otherwise *run* a program or shortcut they are handed, and a value starting with `-`
 /// would be read as an option. An absolute, existing directory rules both out.
-fn require_existing_folder(path: &str) -> Result<(), String> {
+pub(crate) fn require_existing_folder(path: &str) -> Result<(), String> {
     let p = Path::new(path);
     if p.is_absolute() && p.is_dir() {
         Ok(())

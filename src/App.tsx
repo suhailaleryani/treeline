@@ -16,6 +16,7 @@ import { CloneDialog } from "./components/CloneDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { FileHistoryDialog } from "./components/FileHistoryDialog";
 import { MergedBranchesDialog } from "./components/MergedBranchesDialog";
+import { ManageButtonsDialog } from "./components/ManageButtonsDialog";
 import { MultiMergeDialog } from "./components/MultiMergeDialog";
 import { CommandPalette } from "./components/CommandPalette";
 import { ContextMenuHost, FormDialogHost, Toasts } from "./components/Overlays";
@@ -32,6 +33,7 @@ export default function App() {
   const fileHistory = useUi((s) => s.fileHistory);
   const mergedBranches = useUi((s) => s.mergedBranches);
   const multiMerge = useUi((s) => s.multiMerge);
+  const manageButtons = useUi((s) => s.manageButtons);
 
   useEffect(() => {
     void useApp.getState().init();
@@ -137,6 +139,7 @@ export default function App() {
       <TabBar />
       <main className="main">{active?.path ? <RepoView key={active.id} tab={active} /> : <Home />}</main>
       <StatusBar />
+      {manageButtons && <ManageButtonsDialog key={manageButtons.tabId} tabId={manageButtons.tabId} onClose={() => useUi.setState({ manageButtons: null })} />}
       <ContextMenuHost />
       <FormDialogHost />
       <RebaseDialogHost />

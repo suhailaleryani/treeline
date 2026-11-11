@@ -3,6 +3,8 @@ import { getVersion } from "@tauri-apps/api/app";
 import type {
   BlameLine,
   BranchDeleteResult,
+  ButtonInput,
+  CustomButton,
   MergeApplied,
   MergePreview,
   BranchHistory,
@@ -177,6 +179,14 @@ export const api = {
   // OS
   reveal: (path: string) => invoke<void>("reveal_in_file_manager", { path }),
   terminal: (path: string) => invoke<void>("open_terminal", { path }),
+
+  // custom toolbar buttons (the backend keeps the commands; the page only names a button by its id)
+  buttons: (path: string, tabId: string) => invoke<CustomButton[]>("list_buttons", { path, tabId }),
+  saveButton: (path: string, tabId: string, button: ButtonInput) => invoke<CustomButton>("save_button", { path, tabId, button }),
+  deleteButton: (path: string, tabId: string, id: string) => invoke<void>("delete_button", { path, tabId, id }),
+  runButton: (path: string, tabId: string, id: string) => invoke<OpResult>("run_button", { path, tabId, id }),
+  pruneTabButtons: (tabIds: string[]) => invoke<void>("prune_tab_buttons", { tabIds }),
+  forgetTabButtons: (tabId: string) => invoke<void>("forget_tab_buttons", { tabId }),
   watch: (path: string) => invoke<void>("watch_repo", { path }),
   unwatch: () => invoke<void>("unwatch_repo"),
 

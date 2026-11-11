@@ -1,6 +1,7 @@
 use tauri::menu::{Menu, PredefinedMenuItem, Submenu};
 use tauri::{AppHandle, Wry};
 
+mod buttons;
 mod git;
 mod ops;
 mod store;
@@ -137,6 +138,12 @@ pub fn run() {
             ops::remove_lock_file,
             ops::reveal_in_file_manager,
             ops::open_terminal,
+            buttons::list_buttons,
+            buttons::save_button,
+            buttons::delete_button,
+            buttons::prune_tab_buttons,
+            buttons::forget_tab_buttons,
+            buttons::run_button,
             store::load_state,
             store::save_state,
             watcher::watch_repo,

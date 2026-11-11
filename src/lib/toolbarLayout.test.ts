@@ -2,23 +2,25 @@ import { describe, expect, it } from "vitest";
 import { fileManagerName, toolbarLayout } from "./toolbarLayout";
 
 describe("toolbarLayout", () => {
-  it("shows every daily action with its label on a wide window", () => {
-    expect(toolbarLayout(1440)).toEqual({ overflow: [], labels: true });
-    expect(toolbarLayout(1150)).toEqual({ overflow: [], labels: true });
+  it("fits the eight built-in buttons with labels on a wide window", () => {
+    expect(toolbarLayout(1150)).toEqual({ capacity: 8, labels: true });
+    expect(toolbarLayout(1249)).toEqual({ capacity: 8, labels: true });
   });
-  it("moves Stash and Tag into More first", () => {
-    expect(toolbarLayout(1149)).toEqual({ overflow: ["stash", "tag"], labels: true });
-    expect(toolbarLayout(1000)).toEqual({ overflow: ["stash", "tag"], labels: true });
+  it("adds room for one more item for every 100 px", () => {
+    expect(toolbarLayout(1250).capacity).toBe(9);
+    expect(toolbarLayout(1440).capacity).toBe(10);
   });
-  it("then Branch and Merge, still with labels", () => {
-    expect(toolbarLayout(999)).toEqual({ overflow: ["branch", "merge", "stash", "tag"], labels: true });
-    expect(toolbarLayout(860)).toEqual({ overflow: ["branch", "merge", "stash", "tag"], labels: true });
+  it("makes room for fewer items as the window narrows, still with labels", () => {
+    expect(toolbarLayout(1149)).toEqual({ capacity: 6, labels: true });
+    expect(toolbarLayout(1000)).toEqual({ capacity: 6, labels: true });
+    expect(toolbarLayout(999)).toEqual({ capacity: 4, labels: true });
+    expect(toolbarLayout(860)).toEqual({ capacity: 4, labels: true });
   });
   it("drops the labels only on a very narrow window", () => {
-    expect(toolbarLayout(859)).toEqual({ overflow: ["branch", "merge", "stash", "tag"], labels: false });
+    expect(toolbarLayout(859)).toEqual({ capacity: 4, labels: false });
   });
-  it("keeps the full layout until the width is known", () => {
-    expect(toolbarLayout(0)).toEqual({ overflow: [], labels: true });
+  it("keeps everything until the width is known", () => {
+    expect(toolbarLayout(0)).toEqual({ capacity: Number.POSITIVE_INFINITY, labels: true });
   });
 });
 

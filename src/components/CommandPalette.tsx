@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repoActions } from "../actions";
+import { openButtonDialog, runButton, useButtons } from "../buttons";
 import { errorMessage } from "../api";
 import { useApp } from "../store";
 import { useUi } from "../uiStore";
@@ -74,8 +75,13 @@ function Palette({ onClone }: { onClone: () => void }) {
         { id: "sub-update", label: "Update all submodules", run: () => void a.updateSubmodules() },
         { id: "terminal", label: "Open terminal here", run: a.terminal },
         { id: "reveal", label: "Show in file manager", run: a.reveal },
+        { id: "button-add", label: "Add custom button…", run: () => openButtonDialog(tab.id) },
+        { id: "button-manage", label: "Customize toolbar…", run: () => useUi.setState({ manageButtons: { tabId: tab.id } }) },
         { id: "reload", label: "Refresh", run: () => void s.reload(tab.id) },
       );
+      for (const b of useButtons.getState().byTab[tab.id] ?? []) {
+        out.push({ id: `button-${b.id}`, label: `Run: ${b.label}`, hint: b.kind === "git" ? `git ${b.command}` : b.command, run: () => runButton(tab.id, b) });
+      }
       for (const r of d?.refs ?? []) {
         if (r.kind === "branch" && !r.head) out.push({ id: `co-${r.name}`, label: `Check out ${r.name}`, run: () => void a.checkout(r.name) });
       }

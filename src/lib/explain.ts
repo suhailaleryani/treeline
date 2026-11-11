@@ -290,6 +290,18 @@ const RULES: Rule[] = [
       actions: [],
     }),
   },
+  {
+    // The backend's own wording for a custom toolbar button that cannot be saved or run: say it as it is.
+    id: "custom-button",
+    test:
+      /Give the button a name|Enter the command or link|Enter the git arguments|The (name|command) can be at most|The command must be a single line|The name cannot contain|A link must start with|A link cannot contain|A quote in the command is not closed|That button no longer exists|not safe to put in a shell command|This button uses \{(branch|remote|repo)\}|The command could not be started|buttons\.json/i,
+    build: (_m, raw) => ({
+      title: "This custom button needs a change",
+      why: raw.trim(),
+      fixes: [],
+      actions: [],
+    }),
+  },
 ];
 
 /** Turns a raw git error into a title, explanation and fixes. Never returns null. */

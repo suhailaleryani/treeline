@@ -170,6 +170,47 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 * **This guide is built into the app.** Press `F1` or click the **?** button at the top right. It opens in its own window and works offline. Error panels have a **Learn more** button that opens the
   page on fixing errors, and the command palette has shortcuts to the most useful pages.
 
+### Custom buttons
+
+Click **Add** in the toolbar (or **More → Add custom button…**) to make a button of your own. Four kinds are available:
+
+| Kind | What it does |
+|---|---|
+| **Shell command** | Runs a command in the repository's folder (for example `npm test`) and shows its output when it ends. It is stopped after 10 minutes. |
+| **Git command** | Runs `git` with the arguments you type (for example `fetch --prune`); no shell is involved. |
+| **Command in a terminal window** | Opens a terminal in the repository's folder and runs the command there, so you can watch it and type into it. |
+| **Open a link** | Opens an `http://`, `https://` or `mailto:` link, for example your CI page. |
+
+In a command you can write `{branch}` (the current branch), `{repo}` (the repository folder) and `{remote}` (the first
+remote's address, without any password). Treeline refuses to run a shell command whose branch or folder name holds a
+character that could be misread by the shell, and tells you why.
+
+*Save it for* decides where the button lives: **Every repository** (the whole app), **This repository** (in every tab that
+shows it) or **This tab only**. Buttons are kept in Treeline's own settings on your computer. They are never read from, or
+written into, a repository, so cloning someone else's repository can never add a button that runs a command.
+
+Pick an **Icon** from the grid (or leave it on *Auto* to use the icon of the kind of button).
+
+Tick *Show it in the toolbar* to put the button in the toolbar; otherwise it is listed in the **More** menu. *Ask before
+running it* shows the exact command and waits for your **Run** (on by default).
+
+### Ordering the toolbar
+
+**More → Customize toolbar…** lists every toolbar button, the built-in ones (Commit, Fetch, Pull, Push, Branch, Merge, Stash,
+Tag, and Sync subs when the repository has submodules) together with your custom ones, in the order the toolbar shows them.
+
+* Use the arrows to move a button up or down. The order is the same in every tab and is remembered.
+* Untick *Toolbar* to move any button, built-in or custom, into the **More** menu; tick it to bring it back.
+* A button that does not fit in a narrow window moves into **More** by itself, last buttons first, and keeps its order there.
+* **Separators** divide the toolbar into groups. The toolbar starts with one after Commit and one after Push. Click the separator
+  button on a row to add a new separator after that button, move it with the arrows like any other item, or remove it with
+  the trash icon. Separators take no room, and one that would end up at the edge of a group, or next to another separator,
+  is not drawn. The More menu shows them too, so its buttons stay in the same groups.
+* **Edit** and the trash icon change or remove a custom button (built-in buttons cannot be edited or removed).
+* **Reset order** puts the buttons and separators back in their usual order, all in the toolbar. Custom buttons are kept.
+
+Each custom button also appears in the command palette as *Run: name*.
+
 ---
 
 ## 5. Everyday workflow

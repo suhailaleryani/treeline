@@ -1,4 +1,5 @@
 import type { RecentRepo } from "./lib/recent";
+import type { ToolbarPrefs } from "./lib/toolbarItems";
 export interface FileChange {
   path: string;
   /** Staged state letter, "." when unchanged. */
@@ -120,6 +121,8 @@ export interface PersistedState {
   /** Repositories opened lately, newest first (older saved states have none). */
   recent?: RecentRepo[];
   theme?: ThemeMode;
+  /** The order of the toolbar's buttons and which of them are in the More menu (see lib/toolbarItems.ts). */
+  toolbar?: ToolbarPrefs;
 }
 
 /** What was being attempted when an error occurred; lets the error panel offer a matching (force) fix. */
@@ -201,3 +204,25 @@ export interface BranchDeleteResult {
   ok: boolean;
   message: string;
 }
+
+/** What a custom toolbar button does. */
+export type ButtonKind = "shell" | "git" | "terminal" | "url";
+/** Where a custom button is saved: for the whole app, for one repository, or for one tab. */
+export type ButtonScope = "app" | "repo" | "tab";
+
+export interface CustomButton {
+  id: string;
+  label: string;
+  kind: ButtonKind;
+  /** A shell command, git arguments or a link; may use {branch}, {repo} and {remote}. */
+  command: string;
+  scope: ButtonScope;
+  /** The name of one of the icons in Icon.tsx; absent means the icon of the button's kind. */
+  icon?: string | null;
+  /** Ask before running. */
+  confirm: boolean;
+  position: number;
+}
+
+/** What is sent when a button is saved; `id` is absent for a new one. */
+export type ButtonInput = Omit<CustomButton, "id" | "position"> & { id?: string };

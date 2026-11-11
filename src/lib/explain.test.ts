@@ -59,6 +59,14 @@ describe("explainError", () => {
     }
   });
 
+  it("shows a custom button's own message instead of a git explanation", () => {
+    const e = explainError("Give the button a name.");
+    expect(e.id).toBe("custom-button");
+    expect(e.why).toBe("Give the button a name.");
+    expect(explainError("'a\"b' contains a character that is not safe to put in a shell command, so the button was not run.").id).toBe("custom-button");
+    expect(explainError("This button uses {branch}, but no branch is checked out (detached HEAD).").id).toBe("custom-button");
+  });
+
   it("always returns an explanation with fixes, even for unknown errors", () => {
     const e = explainError("some brand new git failure");
     expect(e.id).toBe("unknown");

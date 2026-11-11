@@ -5,6 +5,7 @@ import { forgetSections } from "./uiStore";
 import { noFilters, type HistoryFilters } from "./lib/historyFilter";
 import { checkForUpdate } from "./updater";
 import { addRecent, type RecentRepo } from "./lib/recent";
+import { cleanPrefs, DEFAULT_TOOLBAR, type ToolbarPrefs } from "./lib/toolbarItems";
 import type {
   Bookmark,
   Commit,
@@ -70,7 +71,8 @@ export interface Toast {
 export interface DialogField {
   key: string;
   label: string;
-  type: "text" | "textarea" | "checkbox" | "select";
+  /** "icons" shows a grid of the icons in `options` (value = icon name) next to a "default" choice (value ""). */
+  type: "text" | "textarea" | "checkbox" | "select" | "icons";
   value?: string | boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
@@ -141,6 +143,8 @@ interface AppState {
   bookmarks: Bookmark[];
   /** Repositories opened lately, newest first; Home shows the ones that are not bookmarked. */
   recent: RecentRepo[];
+  /** The toolbar order the user chose and which buttons are in More; the same in every tab. */
+  toolbar: ToolbarPrefs;
   theme: ThemeMode;
   data: Record<string, RepoData>;
   toasts: Toast[];
@@ -170,6 +174,7 @@ interface AppState {
   addBookmark: (path: string) => void;
   removeBookmark: (id: string) => void;
   removeRecent: (path: string) => void;
+  setToolbar: (prefs: ToolbarPrefs) => void;
   setTheme: (t: ThemeMode) => void;
   notify: (kind: Toast["kind"], text: string, ctx?: ErrorCtx) => void;
   dismiss: (id: number) => void;
@@ -207,6 +212,7 @@ export const useApp = create<AppState>((set, get) => {
     activeId: null,
     bookmarks: [],
     recent: [],
+    toolbar: DEFAULT_TOOLBAR,
     theme: "system",
     data: {},
     toasts: [],
@@ -226,6 +232,7 @@ export const useApp = create<AppState>((set, get) => {
         activeId,
         bookmarks: saved?.bookmarks ?? [],
         recent: saved?.recent ?? [],
+        toolbar: cleanPrefs(saved?.toolbar),
         theme: saved?.theme ?? "system",
         ready: true,
       });
@@ -234,6 +241,9 @@ export const useApp = create<AppState>((set, get) => {
         watchActive();
         void get().reload();
       }
+      // Buttons saved for a tab that was open when the app last ran are kept; those of tabs that are gone are dropped.
+      // (Not done when the saved tabs could not be read: they would all look gone.)
+      if (saved) void api.pruneTabButtons(tabs.map((t) => t.id)).catch(() => undefined);
       // The app runs the system Git, so an old Git means old clone and submodule bugs. Say so once per version.
       void api
         .gitInfo()
@@ -269,6 +279,7 @@ export const useApp = create<AppState>((set, get) => {
       const data = { ...get().data };
       delete data[id];
       forgetSections(id);
+      void api.forgetTabButtons(id).catch(() => undefined);
       const newActive =
         activeId === id ? (next[Math.min(idx, next.length - 1)]?.id ?? null) : activeId;
       set({ tabs: next, activeId: newActive, data });
@@ -495,6 +506,10 @@ export const useApp = create<AppState>((set, get) => {
       set((s) => ({ recent: s.recent.filter((r) => r.path !== path) }));
     },
 
+    setToolbar(prefs) {
+      set({ toolbar: prefs });
+    },
+
     removeBookmark(id) {
       set((s) => ({ bookmarks: s.bookmarks.filter((b) => b.id !== id) }));
     },
@@ -529,13 +544,14 @@ useApp.subscribe((s, prev) => {
     s.activeId === prev.activeId &&
     s.bookmarks === prev.bookmarks &&
     s.recent === prev.recent &&
+    s.toolbar === prev.toolbar &&
     s.theme === prev.theme
   )
     return;
   clearTimeout(timer);
   timer = setTimeout(() => {
     void api
-      .saveState({ tabs: s.tabs, activeId: s.activeId, bookmarks: s.bookmarks, recent: s.recent, theme: s.theme })
+      .saveState({ tabs: s.tabs, activeId: s.activeId, bookmarks: s.bookmarks, recent: s.recent, toolbar: s.toolbar, theme: s.theme })
       .catch(() => undefined);
   }, 300);
 });
