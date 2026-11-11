@@ -3,11 +3,11 @@ import { api, errorMessage } from "../api";
 import { repoActions } from "../actions";
 import { useAutoSplit, useDebounced, useElementHeight, useOptionalSplit, useSplit } from "../hooks";
 import { computeGraph, reachableFrom, type GraphRow } from "../lib/graph";
-import { classifyRef, fullDate, listDate, splitPath } from "../lib/format";
+import { DATE_FORMATS, classifyRef, formatListDate, fullDate, splitPath } from "../lib/format";
 import { graphWidths, historyListHeights } from "../lib/paneSize";
 import { DATE_RANGES, authorsOf, dateFilterActive, dateWindow, filtersActive, noFilters, type DateRange } from "../lib/historyFilter";
 import { useApp } from "../store";
-import { openMenu, useUi } from "../uiStore";
+import { openMenu, setDateFormat, useUi } from "../uiStore";
 import type { Commit, CommitDetail, FileEntry, Tab } from "../types";
 import { DiffView } from "./DiffView";
 import { Icon } from "./Icon";
@@ -72,6 +72,7 @@ export function HistoryView({ tab }: { tab: Tab }) {
   // always keeps room, so a saved or dragged height can never push it off screen.
   const listH = historyListHeights(historyH, window.innerHeight);
   const [height, onSplit, resetSplit] = useAutoSplit("history-top", listH.auto, listH.min, listH.max, "y");
+  const dateFormat = useUi((s) => s.dateFormat);
   const filters = d.ui.filters;
   const setFilters = (patch: Partial<typeof filters>) => setUi(tab.id, { filters: { ...filters, ...patch } });
   const filtering = filtersActive(filters);
@@ -199,6 +200,15 @@ export function HistoryView({ tab }: { tab: Tab }) {
   }, [selected, compare, rowsData]);
   const commitBySha = useMemo(() => new Map(d.log.map((c) => [c.sha, c])), [d.log]);
 
+  const dateHeaderMenu = (e: React.MouseEvent) =>
+    openMenu(
+      e,
+      DATE_FORMATS.map((f) => ({
+        label: `${f.value === dateFormat ? "✓ " : " "}${f.label}`,
+        onClick: () => setDateFormat(f.value),
+      })),
+    );
+
   const commitMenu = (e: React.MouseEvent, c: Commit) => {
     const isHead = status?.head === c.sha;
     openMenu(e, [
@@ -317,7 +327,7 @@ export function HistoryView({ tab }: { tab: Tab }) {
               <i className="col-grip" onMouseDown={onAuthorSplit} onDoubleClick={() => resetAuthor()} role="separator" aria-orientation="vertical" title="Drag to resize. Double-click to reset." />
               <span className="col-label">Author</span>
             </span>
-            <span className="col-head">
+            <span className="col-head" onContextMenu={dateHeaderMenu} title="Right-click to change the date format">
               <i className="col-grip" onMouseDown={onDateSplit} onDoubleClick={() => resetDate()} role="separator" aria-orientation="vertical" title="Drag to resize. Double-click to reset." />
               <span className="col-label">Date</span>
             </span>
@@ -361,7 +371,7 @@ export function HistoryView({ tab }: { tab: Tab }) {
                   </span>
                   <span className="muted ellipsis">{c.author}</span>
                   <span className="muted ellipsis" title={isWip ? "" : fullDate(c.time)}>
-                    {isWip ? "" : listDate(c.time)}
+                    {isWip ? "" : formatListDate(c.time, dateFormat)}
                   </span>
                   <span className="sha">{isWip ? "" : c.sha.slice(0, 7)}</span>
                 </div>

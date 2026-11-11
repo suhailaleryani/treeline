@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyRef, listDate, parseTrack, pathParts, relativeTime, splitPath } from "./format";
+import { classifyRef, formatListDate, listDate, parseTrack, pathParts, relativeTime, splitPath } from "./format";
 
 describe("format helpers", () => {
   it("formats relative time", () => {
@@ -31,6 +31,23 @@ describe("format helpers", () => {
     expect(classifyRef("origin/dev", ["origin"])?.kind).toBe("remote");
     expect(classifyRef("tag: v1", [])).toEqual({ label: "v1", kind: "tag" });
     expect(classifyRef("feature/x", ["origin"])?.kind).toBe("branch");
+  });
+});
+
+describe("formatListDate", () => {
+  const now = Date.UTC(2026, 10, 10, 12, 0, 0);
+  const t = now / 1000 - 2 * 3600;
+  it("keeps elapsed time by default", () => {
+    expect(formatListDate(t, "elapsed", now, "en-GB")).toBe("2 h ago");
+  });
+  it("shows only the date", () => {
+    expect(formatListDate(t, "date", now, "en-GB")).toMatch(/^10 Nov 2026$/);
+  });
+  it("shows time before the date", () => {
+    expect(formatListDate(t, "timedate", now, "en-GB")).toMatch(/^\d{2}:\d{2}, 10 Nov 2026$/);
+  });
+  it("shows date and time", () => {
+    expect(formatListDate(t, "datetime", now, "en-GB")).toMatch(/^10 Nov 2026,? \d{2}:\d{2}$/);
   });
 });
 

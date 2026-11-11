@@ -1,6 +1,7 @@
 import type { Update } from "@tauri-apps/plugin-updater";
 import type { MouseEvent } from "react";
 import { create } from "zustand";
+import type { DateFormat } from "./lib/format";
 import type { CustomButton } from "./types";
 
 export interface MenuItem {
@@ -39,7 +40,30 @@ export interface FileHistoryRequest {
   rev?: string;
 }
 
+const DATE_FORMAT_KEY = "history-date-format";
+
+function loadDateFormat(): DateFormat {
+  try {
+    const v = localStorage.getItem(DATE_FORMAT_KEY);
+    return v === "date" || v === "datetime" || v === "timedate" ? v : "elapsed";
+  } catch {
+    return "elapsed"; // storage unavailable: use the default
+  }
+}
+
+/** Remembers how the History Date column is formatted. */
+export function setDateFormat(dateFormat: DateFormat) {
+  useUi.setState({ dateFormat });
+  try {
+    localStorage.setItem(DATE_FORMAT_KEY, dateFormat);
+  } catch {
+    /* not remembered across restarts, still kept while the app runs */
+  }
+}
+
 interface UiState {
+  /** How the History Date column shows times. */
+  dateFormat: DateFormat;
   fileHistory: FileHistoryRequest | null;
   /** Sidebar sections the user toggled by hand, per tab; absent = use the section's default. */
   sections: TabSections;
@@ -62,7 +86,7 @@ interface UiState {
   update: Update | null;
 }
 
-export const useUi = create<UiState>(() => ({ fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
+export const useUi = create<UiState>(() => ({ dateFormat: loadDateFormat(), fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
 
 export function openMenu(e: MouseEvent | { clientX: number; clientY: number; preventDefault?: () => void; stopPropagation?: () => void }, items: MenuItem[]) {
   e.preventDefault?.();
