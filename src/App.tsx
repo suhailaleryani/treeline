@@ -23,6 +23,7 @@ import { MultiMergeDialog } from "./components/MultiMergeDialog";
 import { CommandPalette } from "./components/CommandPalette";
 import { ContextMenuHost, FormDialogHost, Toasts } from "./components/Overlays";
 import { RebaseDialogHost } from "./components/RebaseDialog";
+import { TerminalDock } from "./components/TerminalPanel";
 import "./App.css";
 
 export default function App() {
@@ -114,6 +115,11 @@ export default function App() {
         return;
       }
       if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === "`") {
+        e.preventDefault();
+        useUi.setState((u) => ({ terminalOpen: !u.terminalOpen }));
+        return;
+      }
       if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
         e.preventDefault();
         void openGuide().catch((err) => useApp.getState().notify("error", String(err)));
@@ -140,7 +146,13 @@ export default function App() {
   return (
     <div className="app">
       <TabBar />
-      <main className="main">{active?.path ? <RepoView key={active.id} tab={active} /> : <Home />}</main>
+      <div className="work">
+        <div className="work-top">
+          <main className="main">{active?.path ? <RepoView key={active.id} tab={active} /> : <Home />}</main>
+          <TerminalDock dock="right" />
+        </div>
+        <TerminalDock dock="bottom" />
+      </div>
       <StatusBar />
       {manageButtons && <ManageButtonsDialog key={manageButtons.tabId} tabId={manageButtons.tabId} onClose={() => useUi.setState({ manageButtons: null })} />}
       {buttonDialog && (

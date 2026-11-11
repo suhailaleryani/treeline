@@ -8,7 +8,7 @@ import { fileManagerName } from "./toolbarLayout";
 
 /**
  * The built-in buttons, in their default order. "subs" is only there for a repository that has submodules. The last four
- * (Merge to many, Clean up, Terminal and the file manager) start in the More menu.
+ * (Merge to many, Clean up and the file manager) start in the More menu; Terminal toggles the built-in terminal and is in the toolbar.
  */
 export const BUILTIN_IDS = [
   "commit", "fetch", "pull", "push", "subs", "branch", "merge", "stash", "tag", "multimerge", "cleanup", "terminal", "reveal",
@@ -31,7 +31,7 @@ const DEFAULT_ITEMS = [
 ];
 
 /** The buttons that start in the More menu. */
-export const DEFAULT_MORE: string[] = ["multimerge", "cleanup", "terminal", "reveal"];
+export const DEFAULT_MORE: string[] = ["multimerge", "cleanup", "reveal"];
 
 /** How each built-in button is named and drawn (also in the dialog that orders them). */
 export const BUILTIN_META: Record<BuiltinId, { label: string; icon: IconName }> = {

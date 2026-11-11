@@ -5,6 +5,7 @@ mod buttons;
 mod git;
 mod ops;
 mod store;
+mod terminal;
 mod watcher;
 
 /// The macOS menu bar. Tauri's default menu binds Cmd+W to "Close Window", which would close the
@@ -60,6 +61,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .manage(watcher::WatchState::default())
+        .manage(terminal::TerminalState::default())
         .setup(|app| {
             store::apply_saved_settings(app.handle());
             store::load_trusted_folders(app.handle());
@@ -148,6 +150,10 @@ pub fn run() {
             store::save_state,
             watcher::watch_repo,
             watcher::unwatch_repo,
+            terminal::term_open,
+            terminal::term_write,
+            terminal::term_resize,
+            terminal::term_close,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Treeline");

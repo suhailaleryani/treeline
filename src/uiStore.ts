@@ -62,6 +62,8 @@ export function setDateFormat(dateFormat: DateFormat) {
 }
 
 interface UiState {
+  /** Whether the terminal area (bottom and right docks) is shown. The shells keep running while it is hidden. */
+  terminalOpen: boolean;
   /** How the History Date column shows times. */
   dateFormat: DateFormat;
   fileHistory: FileHistoryRequest | null;
@@ -86,7 +88,7 @@ interface UiState {
   update: Update | null;
 }
 
-export const useUi = create<UiState>(() => ({ dateFormat: loadDateFormat(), fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
+export const useUi = create<UiState>(() => ({ terminalOpen: false, dateFormat: loadDateFormat(), fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
 
 export function openMenu(e: MouseEvent | { clientX: number; clientY: number; preventDefault?: () => void; stopPropagation?: () => void }, items: MenuItem[]) {
   e.preventDefault?.();

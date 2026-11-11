@@ -29,6 +29,7 @@ function Btn({
   disabled,
   title,
   running,
+  active,
 }: {
   icon: IconName;
   label: string;
@@ -38,9 +39,11 @@ function Btn({
   title?: string;
   /** Its command is running now. */
   running?: boolean;
+  /** Its panel or mode is on now. */
+  active?: boolean;
 }) {
   return (
-    <button className={`tool${running ? " running" : ""}`} onClick={onClick} disabled={disabled} title={title ?? label} aria-busy={running || undefined}>
+    <button className={`tool${running ? " running" : ""}${active ? " on" : ""}`} onClick={onClick} disabled={disabled} title={title ?? label} aria-busy={running || undefined} aria-pressed={active}>
       <span className="tool-icon">
         <Icon name={icon} size={18} />
         {badge && <span className="tool-badge">{badge}</span>}
@@ -68,6 +71,7 @@ export function Toolbar({ tab }: { tab: Tab }) {
   const a = repoActions(tab.id);
   const s = d?.status;
   const busy = !!d?.busy;
+  const terminalOpen = useUi((st) => st.terminalOpen);
   const bookmark = bookmarks.find((b) => b.path === tab.path);
   const changes = s?.files.length ?? 0;
   const ref = useRef<HTMLDivElement>(null);
@@ -189,11 +193,21 @@ export function Toolbar({ tab }: { tab: Tab }) {
           menu: [{ label: "Clean up merged branches…", onClick: open }],
         };
       }
-      case "terminal":
+      case "terminal": {
+        const toggle = () => useUi.setState({ terminalOpen: !terminalOpen });
         return {
-          button: <Btn icon={icon} label={label} title="Open a terminal in the repository folder" onClick={() => a.terminal()} />,
-          menu: [{ label: "Open in Terminal", onClick: () => a.terminal() }],
+          button: (
+            <>
+              <Btn icon={icon} label={label} active={terminalOpen} title="Show or hide the built-in terminal (Ctrl+`). The arrow next to it opens an external terminal window." onClick={toggle} />
+              {mini("More terminal options", false, [{ label: "Open in external terminal window", onClick: () => a.terminal() }])}
+            </>
+          ),
+          menu: [
+            { label: terminalOpen ? "Hide terminal" : "Show terminal", hint: "Ctrl+`", onClick: toggle },
+            { label: "Open in external terminal window", onClick: () => a.terminal() },
+          ],
         };
+      }
       case "reveal":
         return {
           button: <Btn icon={icon} label={label} title={`Show the repository folder in ${label}`} onClick={() => a.reveal()} />,
