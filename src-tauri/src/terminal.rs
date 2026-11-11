@@ -44,7 +44,7 @@ fn size(rows: u16, cols: u16) -> PtySize {
 
 /// Starts a shell in `path` (a folder the user opened) and returns its id.
 #[tauri::command]
-pub fn term_open(app: AppHandle, state: State<'_, TerminalState>, path: String, rows: u16, cols: u16) -> Result<u32, String> {
+pub async fn term_open(app: AppHandle, state: State<'_, TerminalState>, path: String, rows: u16, cols: u16) -> Result<u32, String> {
     crate::git::ensure_allowed(&path)?;
     crate::ops::require_existing_folder(&path)?;
     let pair = native_pty_system().openpty(size(rows, cols)).map_err(|e| e.to_string())?;
@@ -96,14 +96,14 @@ pub fn term_open(app: AppHandle, state: State<'_, TerminalState>, path: String, 
 }
 
 #[tauri::command]
-pub fn term_write(state: State<'_, TerminalState>, id: u32, data: String) -> Result<(), String> {
+pub async fn term_write(state: State<'_, TerminalState>, id: u32, data: String) -> Result<(), String> {
     let mut sessions = state.sessions.lock().map_err(|e| e.to_string())?;
     let s = sessions.get_mut(&id).ok_or("The terminal is not running.")?;
     s.writer.write_all(data.as_bytes()).and_then(|_| s.writer.flush()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn term_resize(state: State<'_, TerminalState>, id: u32, rows: u16, cols: u16) -> Result<(), String> {
+pub async fn term_resize(state: State<'_, TerminalState>, id: u32, rows: u16, cols: u16) -> Result<(), String> {
     let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
     let s = sessions.get(&id).ok_or("The terminal is not running.")?;
     s.master.resize(size(rows, cols)).map_err(|e| e.to_string())
@@ -111,9 +111,15 @@ pub fn term_resize(state: State<'_, TerminalState>, id: u32, rows: u16, cols: u1
 
 /// Ends the shell and forgets the session.
 #[tauri::command]
-pub fn term_close(state: State<'_, TerminalState>, id: u32) -> Result<(), String> {
-    if let Some(mut s) = state.sessions.lock().map_err(|e| e.to_string())?.remove(&id) {
-        let _ = s.child.kill();
+pub async fn term_close(state: State<'_, TerminalState>, id: u32) -> Result<(), String> {
+    let session = state.sessions.lock().map_err(|e| e.to_string())?.remove(&id);
+    if let Some(mut s) = session {
+        // Ending the shell and closing the pseudo-console can block (on Windows it waits for the reader to drain),
+        // so it happens on its own thread and never holds up the window.
+        std::thread::spawn(move || {
+            let _ = s.child.kill();
+            drop(s);
+        });
     }
     Ok(())
 }

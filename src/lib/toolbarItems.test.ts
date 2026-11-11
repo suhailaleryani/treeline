@@ -77,15 +77,15 @@ describe("arrange", () => {
 
 describe("the rarer actions", () => {
   const items = availableItems(DEFAULT_TOOLBAR, false, []);
-  it("start in More, grouped as they were in the menu", () => {
+  it("start in More, except the built-in terminal, which is in the toolbar", () => {
     const r = arrange(DEFAULT_TOOLBAR, items, Infinity);
-    expect(r.toolbar).toEqual(["commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag"]);
-    expect(r.more).toEqual(["multimerge", "cleanup", "sep:3", "terminal", "reveal"]);
-  });
-  it("can be shown in the toolbar like any other button", () => {
-    const r = arrange(setInMore(DEFAULT_TOOLBAR, "terminal", false), items, Infinity);
     expect(r.toolbar).toEqual(["commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag", "sep:3", "terminal"]);
     expect(r.more).toEqual(["multimerge", "cleanup", "sep:3", "reveal"]);
+  });
+  it("can be shown in the toolbar like any other button", () => {
+    const r = arrange(setInMore(DEFAULT_TOOLBAR, "reveal", false), items, Infinity);
+    expect(r.toolbar).toEqual(["commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag", "sep:3", "terminal", "reveal"]);
+    expect(r.more).toEqual(["multimerge", "cleanup"]);
   });
 });
 

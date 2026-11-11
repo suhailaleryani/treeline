@@ -40,27 +40,6 @@ export interface FileHistoryRequest {
   rev?: string;
 }
 
-export type TerminalPos = "bottom" | "right";
-const TERMINAL_POS_KEY = "terminal-position";
-
-function loadTerminalPos(): TerminalPos {
-  try {
-    return localStorage.getItem(TERMINAL_POS_KEY) === "right" ? "right" : "bottom";
-  } catch {
-    return "bottom"; // storage unavailable: use the default
-  }
-}
-
-/** Remembers where the terminal panel is shown. */
-export function setTerminalPos(terminalPos: TerminalPos) {
-  useUi.setState({ terminalPos });
-  try {
-    localStorage.setItem(TERMINAL_POS_KEY, terminalPos);
-  } catch {
-    /* not remembered across restarts, still kept while the app runs */
-  }
-}
-
 const DATE_FORMAT_KEY = "history-date-format";
 
 function loadDateFormat(): DateFormat {
@@ -83,10 +62,8 @@ export function setDateFormat(dateFormat: DateFormat) {
 }
 
 interface UiState {
-  /** Whether the terminal panel at the bottom of the window is shown. The shell keeps running while it is hidden. */
+  /** Whether the terminal area (bottom and right docks) is shown. The shells keep running while it is hidden. */
   terminalOpen: boolean;
-  /** Where the terminal panel sits: under the repository view, or beside it on the right. */
-  terminalPos: TerminalPos;
   /** How the History Date column shows times. */
   dateFormat: DateFormat;
   fileHistory: FileHistoryRequest | null;
@@ -111,7 +88,7 @@ interface UiState {
   update: Update | null;
 }
 
-export const useUi = create<UiState>(() => ({ terminalOpen: false, terminalPos: loadTerminalPos(), dateFormat: loadDateFormat(), fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
+export const useUi = create<UiState>(() => ({ terminalOpen: false, dateFormat: loadDateFormat(), fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
 
 export function openMenu(e: MouseEvent | { clientX: number; clientY: number; preventDefault?: () => void; stopPropagation?: () => void }, items: MenuItem[]) {
   e.preventDefault?.();

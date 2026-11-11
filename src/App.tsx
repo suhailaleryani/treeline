@@ -23,7 +23,7 @@ import { MultiMergeDialog } from "./components/MultiMergeDialog";
 import { CommandPalette } from "./components/CommandPalette";
 import { ContextMenuHost, FormDialogHost, Toasts } from "./components/Overlays";
 import { RebaseDialogHost } from "./components/RebaseDialog";
-import { TerminalPanel } from "./components/TerminalPanel";
+import { TerminalDock } from "./components/TerminalPanel";
 import "./App.css";
 
 export default function App() {
@@ -31,7 +31,6 @@ export default function App() {
   const tabs = useApp((s) => s.tabs);
   const activeId = useApp((s) => s.activeId);
   const theme = useApp((s) => s.theme);
-  const terminalPos = useUi((s) => s.terminalPos);
   const cloning = useUi((s) => s.clone);
   const settingsOpen = useUi((s) => s.settings);
   const fileHistory = useUi((s) => s.fileHistory);
@@ -147,9 +146,12 @@ export default function App() {
   return (
     <div className="app">
       <TabBar />
-      <div className={`work ${terminalPos}`}>
-        <main className="main">{active?.path ? <RepoView key={active.id} tab={active} /> : <Home />}</main>
-        <TerminalPanel />
+      <div className="work">
+        <div className="work-top">
+          <main className="main">{active?.path ? <RepoView key={active.id} tab={active} /> : <Home />}</main>
+          <TerminalDock dock="right" />
+        </div>
+        <TerminalDock dock="bottom" />
       </div>
       <StatusBar />
       {manageButtons && <ManageButtonsDialog key={manageButtons.tabId} tabId={manageButtons.tabId} onClose={() => useUi.setState({ manageButtons: null })} />}

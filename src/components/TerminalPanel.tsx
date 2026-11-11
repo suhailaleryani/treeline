@@ -1,46 +1,97 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
-import { FitAddon } from "@xterm/addon-fit";
-import { Terminal } from "@xterm/xterm";
-import "@xterm/xterm/css/xterm.css";
-import { api, errorMessage } from "../api";
+import { useEffect, useRef, useState } from "react";
 import { useSplit } from "../hooks";
+import { applyTerminalTheme, attachTerminal, focusTerminal, refitTerminal } from "../lib/terminalRegistry";
 import { useApp } from "../store";
-import { setTerminalPos, useUi } from "../uiStore";
+import { addTab, closeTab, focusGroup, moveGroup, newGroup, restartTab, selectTab, useTerminals, type Dock, type TermGroup, type TermTab } from "../terminalStore";
+import { useUi } from "../uiStore";
 import { Icon } from "./Icon";
+import "@xterm/xterm/css/xterm.css";
 
 const MIN_H = 100;
+const MIN_W = 240;
 
-/** The colours of the current theme, read from the CSS variables so the terminal follows light and dark. */
-function themeColors() {
-  const css = getComputedStyle(document.documentElement);
-  const v = (name: string) => css.getPropertyValue(name).trim() || undefined;
-  return { background: v("--bg"), foreground: v("--text"), cursor: v("--accent"), selectionBackground: v("--accent-soft") };
+const folderName = (path: string) => path.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || path;
+
+/** Shows one terminal. The shell itself lives in the registry, so moving a group does not end it. */
+function TerminalView({ tab, focused }: { tab: TermTab; focused: boolean }) {
+  const host = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    attachTerminal(tab.id, tab.path, el);
+    const ro = new ResizeObserver(() => refitTerminal(tab.id));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [tab.id, tab.path, tab.gen]);
+  useEffect(() => {
+    if (focused) focusTerminal(tab.id);
+  }, [focused, tab.id, tab.gen]);
+  return <div className="terminal-body" ref={host} />;
+}
+
+function GroupView({ group, focused, activePath }: { group: TermGroup; focused: boolean; activePath: string | null }) {
+  const cur = group.tabs.find((t) => t.id === group.current) ?? group.tabs[0];
+  const other: Dock = group.dock === "bottom" ? "right" : "bottom";
+  return (
+    <div className={`terminal-group${focused ? " focused" : ""}`} onMouseDownCapture={() => focusGroup(group.id)}>
+      <div className="terminal-head">
+        <div className="terminal-tabs" role="tablist" aria-label="Terminals">
+          {group.tabs.map((t, i) => (
+            <span key={t.id} className={`terminal-tab${t.id === cur.id ? " active" : ""}`} role="tab" aria-selected={t.id === cur.id} title={t.path} onClick={() => selectTab(group.id, t.id)}>
+              <span className="ellipsis">
+                {i + 1}: {folderName(t.path)}
+              </span>
+              <button
+                className="icon-btn"
+                aria-label={`Close terminal ${i + 1}`}
+                title="Close this terminal"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeTab(group.id, t.id);
+                }}
+              >
+                <Icon name="x" size={10} />
+              </button>
+            </span>
+          ))}
+          <button className="icon-btn" disabled={!activePath} aria-label="New terminal tab" title="New terminal tab here, in the active repository" onClick={() => activePath && addTab(group.id, activePath)}>
+            <Icon name="plus" size={12} />
+          </button>
+        </div>
+        <button className="btn tiny" disabled={!activePath} onClick={() => activePath && newGroup(activePath, group.dock)} title={group.dock === "bottom" ? "Divide: a new piece beside this one" : "Divide: a new piece below this one"}>
+          Divide
+        </button>
+        <button className="btn tiny" onClick={() => moveGroup(group.id, other)} title={`Move this piece to the ${other}`}>
+          Move {other}
+        </button>
+        <button className="btn tiny" disabled={!activePath} onClick={() => activePath && restartTab(group.id, cur.id, activePath)} title="Start a new shell in the active repository, replacing this one">
+          Restart here
+        </button>
+        <button className="icon-btn" aria-label="Hide the terminals" title="Hide (the shells keep running)" onClick={() => useUi.setState({ terminalOpen: false })}>
+          <Icon name="x" size={12} />
+        </button>
+      </div>
+      <TerminalView key={`${cur.id}:${cur.gen}`} tab={cur} focused={focused} />
+    </div>
+  );
 }
 
 /**
- * The built-in terminal. Mounted once for the whole app, below the repository view, so it keeps its place and its
- * running shell whichever view or tab is showing. Hiding the panel does not end the shell.
+ * One side of the terminal area: all the groups docked at `dock`. Mounted once for the whole app, below (bottom) or
+ * beside (right) the repository view, so it keeps its place in History, Files and every tab. Hiding it does not end
+ * the shells.
  */
-export function TerminalPanel() {
+export function TerminalDock({ dock }: { dock: Dock }) {
   const open = useUi((s) => s.terminalOpen);
-  const pos = useUi((s) => s.terminalPos);
   const theme = useApp((s) => s.theme);
   const activePath = useApp((s) => s.tabs.find((t) => t.id === s.activeId)?.path ?? null);
+  const all = useTerminals((s) => s.groups);
+  const focusedGroup = useTerminals((s) => s.focusedGroup);
+  const groups = all.filter((g) => g.dock === dock);
   const [win, setWin] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
-  // Each position remembers its own size: a height at the bottom, a width on the right.
-  const [height, onSplitH, resetSplitH] = useSplit("terminal-h", 260, MIN_H, Math.round(win.h * 0.7), "y", true);
-  const [width, onSplitW, resetSplitW] = useSplit("terminal-w", 480, 240, Math.round(win.w * 0.7), "x", true);
-  const right = pos === "right";
-  const size = right ? width : height;
-  const onSplit = right ? onSplitW : onSplitH;
-  const resetSplit = right ? resetSplitW : resetSplitH;
-  const host = useRef<HTMLDivElement>(null);
-  const term = useRef<Terminal | null>(null);
-  const fit = useRef<FitAddon | null>(null);
-  const session = useRef<number | null>(null);
-  const [cwd, setCwd] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const bottom = dock === "bottom";
+  // Each dock remembers its own size: a height at the bottom, a width on the right.
+  const [size, onSplit, resetSplit] = useSplit(bottom ? "terminal-h" : "terminal-w", bottom ? 260 : 480, bottom ? MIN_H : MIN_W, Math.round((bottom ? win.h : win.w) * 0.7), bottom ? "y" : "x", true);
 
   useEffect(() => {
     const onResize = () => setWin({ w: window.innerWidth, h: window.innerHeight });
@@ -48,114 +99,22 @@ export function TerminalPanel() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Create the xterm view once, the first time the panel is opened.
+  useEffect(() => applyTerminalTheme(), [theme]);
+
+  // Opening the panel with no terminals starts one at the bottom, in the active repository.
   useEffect(() => {
-    if (!open || term.current || !host.current) return;
-    const t = new Terminal({ fontFamily: "Consolas, 'Cascadia Mono', Menlo, monospace", fontSize: 13, cursorBlink: true, theme: themeColors() });
-    const f = new FitAddon();
-    t.loadAddon(f);
-    t.open(host.current);
-    t.onData((data) => {
-      if (session.current !== null) void api.termWrite(session.current, data).catch(() => undefined);
-    });
-    // Let the app's own shortcuts (Ctrl+backtick, Ctrl+Tab) through instead of sending them to the shell.
-    t.attachCustomKeyEventHandler((e) => !(e.ctrlKey && (e.key === "`" || e.key === "Tab")));
-    term.current = t;
-    fit.current = f;
-  }, [open]);
+    if (bottom && open && all.length === 0 && activePath) newGroup(activePath, "bottom");
+  }, [bottom, open, all.length, activePath]);
 
-  const start = useCallback(async (path: string) => {
-    const t = term.current;
-    if (!t) return;
-    setError(null);
-    if (session.current !== null) void api.termClose(session.current).catch(() => undefined);
-    session.current = null;
-    t.reset();
-    try {
-      fit.current?.fit();
-      session.current = await api.termOpen(path, t.rows, t.cols);
-      setCwd(path);
-      t.focus();
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  }, []);
-
-  // Start the shell in the active repository the first time the panel opens.
-  useEffect(() => {
-    if (open && term.current && session.current === null && !cwd && !error && activePath) void start(activePath);
-  }, [open, activePath, cwd, error, start]);
-
-  useEffect(() => {
-    const subs = [
-      listen<{ id: number; data: string }>("term-data", ({ payload }) => {
-        if (payload.id === session.current) term.current?.write(payload.data);
-      }),
-      listen<number>("term-exit", ({ payload }) => {
-        if (payload !== session.current) return;
-        session.current = null;
-        term.current?.write("\r\n\x1b[2m[The shell has ended. Use Restart here to open a new one.]\x1b[0m\r\n");
-      }),
-    ];
-    return () => subs.forEach((p) => void p.then((f) => f()));
-  }, []);
-
-  // Keep the shell's size matching the panel.
-  useEffect(() => {
-    const el = host.current;
-    if (!el || !open) return;
-    const refit = () => {
-      const t = term.current;
-      if (!t || !fit.current || el.clientHeight === 0) return;
-      fit.current.fit();
-      if (session.current !== null) void api.termResize(session.current, t.rows, t.cols).catch(() => undefined);
-    };
-    const ro = new ResizeObserver(refit);
-    ro.observe(el);
-    refit();
-    return () => ro.disconnect();
-  }, [open, size, pos]);
-
-  useEffect(() => {
-    if (term.current) term.current.options.theme = themeColors();
-  }, [theme]);
-
-  useEffect(() => {
-    if (open) term.current?.focus();
-  }, [open]);
-
-  // End the shell when the app goes away.
-  useEffect(
-    () => () => {
-      if (session.current !== null) void api.termClose(session.current).catch(() => undefined);
-    },
-    [],
-  );
-
+  const shown = open && groups.length > 0;
   return (
-    <section className="terminal-panel" style={{ ...(right ? { width } : { height }), display: open ? undefined : "none" }} aria-label="Terminal">
-      <div className={`splitter${right ? "" : " h"}`} onMouseDown={onSplit} onDoubleClick={() => resetSplit()} role="separator" aria-orientation={right ? "vertical" : "horizontal"} title="Drag to resize. Double-click to reset." />
-      <div className="terminal-head">
-        <span className="ellipsis" title={cwd ?? undefined}>
-          Terminal{cwd ? ` — ${cwd}` : ""}
-        </span>
-        <button className="btn tiny" disabled={!activePath} onClick={() => activePath && void start(activePath)} title="Start a new shell in the active repository">
-          Restart here
-        </button>
-        <button
-          className="btn tiny"
-          onClick={() => setTerminalPos(right ? "bottom" : "right")}
-          title={right ? "Move the terminal to the bottom" : "Move the terminal to the right"}
-        >
-          {right ? "Move to bottom" : "Move to right"}
-        </button>
-        <button className="icon-btn" aria-label="Hide the terminal" title="Hide (the shell keeps running)" onClick={() => useUi.setState({ terminalOpen: false })}>
-          <Icon name="x" size={12} />
-        </button>
+    <section className={`terminal-dock ${dock}`} style={{ ...(bottom ? { height: size } : { width: size }), display: shown ? undefined : "none" }} aria-label={`Terminals, ${dock}`}>
+      <div className={`splitter${bottom ? " h" : ""}`} onMouseDown={onSplit} onDoubleClick={() => resetSplit()} role="separator" aria-orientation={bottom ? "horizontal" : "vertical"} title="Drag to resize. Double-click to reset." />
+      <div className={`terminal-groups${groups.length > 1 ? " multi" : ""}`}>
+        {groups.map((g) => (
+          <GroupView key={g.id} group={g} focused={g.id === focusedGroup} activePath={activePath} />
+        ))}
       </div>
-      {error && <div className="error-banner" style={{ padding: "4px 10px" }}>{error}</div>}
-      {!activePath && !error && <div className="muted small" style={{ padding: "6px 10px" }}>Open a repository to start a terminal in its folder.</div>}
-      <div className="terminal-body" ref={host} />
     </section>
   );
 }
