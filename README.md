@@ -50,7 +50,8 @@ Linux builds and Intel Mac builds are untested (see the status table above). Pre
 | **Clone** | Any URL, live progress, optional submodules. A clone whose only failure is a submodule still opens, with a warning. |
 | **Submodules** | Shown in the sidebar with status, opened in their own tab beside the parent (double-click), initialised on demand, bulk update, and **one click to switch every submodule to the same branch name** as the parent (*Sync subs*). |
 | **Working copy** | Stage/unstage/discard per file, **per hunk, or per line**. Commit, amend, commit & push. |
-| **History** | Virtualised commit graph (smooth with 10k+ commits), search, all-branches toggle, **click a branch to highlight its history**, uncommitted-changes row, commit detail and per-file diff in a panel that always stays on screen, with a resizable message box. |
+| **History** | Virtualised commit graph (smooth with 10k+ commits), search, all-branches toggle, **click a branch to highlight its history**, uncommitted-changes row, commit detail and per-file diff in a panel that always stays on screen, with a resizable message box. Right-click the **Date** header to show elapsed time, the date, the date and time, or the time and date. |
+| **Terminal** | A built-in terminal below or beside the repository view, in every view and tab. Open several in tabs, **divide** the area into pieces, and **move any piece to the right** while the others stay at the bottom. Shells keep running while it is hidden. Toolbar button or `Ctrl+``. |
 | **Branches & tags** | Create, check out, rename, delete (local and remote), tag, push tag. Fetch / pull / push a single branch from its right-click menu. |
 | **Updates** | A small dot on the Settings button appears when a newer version of Treeline is available (checked at start-up and every 6 hours); nothing installs until you confirm. |
 | **Remotes** | Automatic background fetch of the active tab (every 2 minutes by default; choose 15 seconds to 30 minutes, or off, in Settings; silent). Fetch, pull (merge / rebase / fast-forward only), push (upstream, tags, force-with-lease) with progress. |
@@ -59,7 +60,7 @@ Linux builds and Intel Mac builds are untested (see the status table above). Pre
 | **Custom buttons** | Add your own toolbar buttons: a shell command, a git command, a command in a terminal window or a link, with `{branch}`, `{repo}` and `{remote}`. Save one for the whole app, one repository or one tab; pick its icon; order every toolbar button (built-in and custom, including the actions that start in **More**), move any of them between the toolbar and the **More** menu, and add separators between groups. Commands are kept and run by the backend, never read from a repository. |
 | **Security** | Asks before opening a repository whose own settings or hooks can run programs, works only on folders you opened, hides credentials in messages, refuses writes through symbolic links, uses a strict content policy and verifies signed updates. See [SECURITY.md](SECURITY.md). |
 | **Errors that help** | Every failure is explained in plain language with numbered fixes and one-click actions (Pull, Stash, Remove lock file …). Risky "force" options are offered last and always confirmed first. |
-| **UX** | Command palette, context menus, dark/light theme, resizable panes, keyboard shortcuts, and the full user guide built in (`F1`, works offline). |
+| **UX** | Command palette, context menus, dark/light theme, resizable panes (including the sidebar), keyboard shortcuts, and the full user guide built in (`F1`, works offline). |
 
 ### Keyboard shortcuts
 
