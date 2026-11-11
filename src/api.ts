@@ -198,6 +198,12 @@ export const api = {
   /** Saves (and verifies) the git executable to use; null/empty goes back to automatic detection. */
   setGitPath: (path: string | null) => invoke<GitInfo>("set_git_path", { path }),
 
+  // built-in terminal
+  termOpen: (path: string, rows: number, cols: number) => invoke<number>("term_open", { path, rows, cols }),
+  termWrite: (id: number, data: string) => invoke<void>("term_write", { id, data }),
+  termResize: (id: number, rows: number, cols: number) => invoke<void>("term_resize", { id, rows, cols }),
+  termClose: (id: number) => invoke<void>("term_close", { id }),
+
   // persistence
   async loadState(): Promise<PersistedState | null> {
     const json = await invoke<string | null>("load_state");
