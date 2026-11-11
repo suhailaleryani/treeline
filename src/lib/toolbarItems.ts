@@ -202,3 +202,17 @@ export function removeSeparator(prefs: ToolbarPrefs, id: string): ToolbarPrefs {
     separators: (prefs.separators ?? DEFAULT_SEPARATORS).filter((x) => x !== id),
   };
 }
+
+/**
+ * Drops an item into the toolbar. `shown` is the toolbar's items in the order they are drawn and `slot` is how many of
+ * the other items stay in front of it, so 0 is the very start and `shown.length - 1` (or more) the very end. An item
+ * that was in More comes back to the toolbar.
+ */
+export function dropInToolbar(prefs: ToolbarPrefs, available: readonly string[], shown: readonly string[], id: string, slot: number): ToolbarPrefs {
+  const others = shown.filter((x) => x !== id);
+  const all = orderedItems(prefs.order, available).filter((x) => x !== id);
+  const lastOther = others.length ? all.indexOf(others[others.length - 1]) : -1;
+  const at = slot >= others.length ? (lastOther >= 0 ? lastOther + 1 : all.length) : all.indexOf(others[Math.max(0, slot)]);
+  all.splice(at < 0 ? all.length : at, 0, id);
+  return { ...prefs, order: withOrder(prefs.order, all), more: prefs.more.filter((m) => m !== id) };
+}

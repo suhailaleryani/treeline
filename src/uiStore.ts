@@ -1,6 +1,7 @@
 import type { Update } from "@tauri-apps/plugin-updater";
 import type { MouseEvent } from "react";
 import { create } from "zustand";
+import type { CustomButton } from "./types";
 
 export interface MenuItem {
   label?: string;
@@ -53,11 +54,15 @@ interface UiState {
   multiMerge: { tabId: string; source?: string } | null;
   /** The dialog that lists, orders, edits and removes custom buttons, open for this tab. */
   manageButtons: { tabId: string } | null;
+  /** The dialog to add a custom button, or to change `existing`. */
+  buttonDialog: { tabId: string; existing?: CustomButton } | null;
+  /** What a custom button's command printed, shown in a panel. */
+  buttonOutput: { title: string; command: string; ok: boolean; output: string } | null;
   /** A newer app version found by the background check; drives the badge on the Settings button. */
   update: Update | null;
 }
 
-export const useUi = create<UiState>(() => ({ fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, update: null }));
+export const useUi = create<UiState>(() => ({ fileHistory: null, sections: loadSections(), menu: null, rebase: null, clone: false, settings: false, mergedBranches: null, multiMerge: null, manageButtons: null, buttonDialog: null, buttonOutput: null, update: null }));
 
 export function openMenu(e: MouseEvent | { clientX: number; clientY: number; preventDefault?: () => void; stopPropagation?: () => void }, items: MenuItem[]) {
   e.preventDefault?.();

@@ -58,11 +58,13 @@ Tick each line as pass (✅), fail (❌) or skipped (➖). Note anything odd eve
     can try both.
 
 **Custom buttons** (the macOS and Linux parts of this feature were written without those systems to test on)
-23. ☐ **Add** a *Shell command* button `echo hello` (save it for *This repository*): pressing it shows the command, then a message with `hello`. Add a *Git command* button `status --short` and run it.
+23. ☐ **Add** a *Shell command* button `echo hello` (save it for *This repository*): pressing it shows the command, then a panel with `hello`. Add a *Git command* button `status --short` and run it.
 24. ☐ **macOS / Linux:** a *Command in a terminal window* button (for example `git log --oneline -5`) opens Terminal (macOS) or the system terminal (Linux) in the repository folder, runs the command and leaves the window open. Note which terminal opened.
 25. ☐ A *Open a link* button `https://example.com/{branch}` opens your default browser; on a branch named `feature/x` the link ends `feature%2Fx`.
 26. ☐ **More → Customize toolbar…**: move a button up and down, untick *Toolbar* for one (it moves into **More**), add a separator, pick an icon for a custom button. In the **More** menu click **Show in toolbar** next to *Open in Terminal*: it appears in the toolbar and still works. Quit and start the app: the order, separators and icon are still there.
-27. ☐ Make the window narrow: buttons that do not fit move into **More** in the same order, and no separator is left dangling at an edge.
+27. ☐ **Dragging:** press and hold a toolbar button for about a third of a second, drag it to another place and release: it moves, and a plain click on any button still runs it. Drag one onto **More**: it leaves the toolbar. Right-click a button: the menu appears (on macOS also with `Ctrl`+click).
+28. ☐ A *Shell command* button that prints something (for example `echo hello`) shows a panel with the output and **Copy output**; one that fails (`exit 1`) shows *Failed*.
+29. ☐ Make the window narrow: buttons that do not fit move into **More** in the same order, and no separator is left dangling at an edge.
 
 ## 2. Report what you found
 

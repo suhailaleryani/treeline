@@ -16,6 +16,8 @@ import { CloneDialog } from "./components/CloneDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { FileHistoryDialog } from "./components/FileHistoryDialog";
 import { MergedBranchesDialog } from "./components/MergedBranchesDialog";
+import { ButtonDialog } from "./components/ButtonDialog";
+import { ButtonOutputDialog } from "./components/ButtonOutputDialog";
 import { ManageButtonsDialog } from "./components/ManageButtonsDialog";
 import { MultiMergeDialog } from "./components/MultiMergeDialog";
 import { CommandPalette } from "./components/CommandPalette";
@@ -34,6 +36,7 @@ export default function App() {
   const mergedBranches = useUi((s) => s.mergedBranches);
   const multiMerge = useUi((s) => s.multiMerge);
   const manageButtons = useUi((s) => s.manageButtons);
+  const buttonDialog = useUi((s) => s.buttonDialog);
 
   useEffect(() => {
     void useApp.getState().init();
@@ -140,6 +143,15 @@ export default function App() {
       <main className="main">{active?.path ? <RepoView key={active.id} tab={active} /> : <Home />}</main>
       <StatusBar />
       {manageButtons && <ManageButtonsDialog key={manageButtons.tabId} tabId={manageButtons.tabId} onClose={() => useUi.setState({ manageButtons: null })} />}
+      {buttonDialog && (
+        <ButtonDialog
+          key={`${buttonDialog.tabId}:${buttonDialog.existing?.id ?? "new"}`}
+          tabId={buttonDialog.tabId}
+          existing={buttonDialog.existing}
+          onClose={() => useUi.setState({ buttonDialog: null })}
+        />
+      )}
+      <ButtonOutputDialog />
       <ContextMenuHost />
       <FormDialogHost />
       <RebaseDialogHost />

@@ -5,6 +5,7 @@ import {
   availableItems,
   cleanPrefs,
   DEFAULT_MORE,
+  dropInToolbar,
   DEFAULT_TOOLBAR,
   moveItem,
   orderedItems,
@@ -195,5 +196,34 @@ describe("setInMore and cleanPrefs", () => {
   });
   it("reads a toolbar saved before separators existed as having the default ones", () => {
     expect(cleanPrefs({ order: ["tag"], more: ["fetch"] }).separators).toBeNull();
+  });
+});
+
+describe("dropInToolbar", () => {
+  const items = availableItems(DEFAULT_TOOLBAR, false, ["b1"]);
+  const shown = ["commit", "sep:1", "fetch", "pull", "push"];
+  const order = (p: ToolbarPrefs) => orderedItems(p.order, items);
+  it("drops a button at the start", () => {
+    expect(order(dropInToolbar(DEFAULT_TOOLBAR, items, shown, "push", 0)).slice(0, 3)).toEqual(["push", "commit", "sep:1"]);
+  });
+  it("drops a button between two others", () => {
+    // fetch is dragged and lands after pull: the others in front of it are commit, sep:1, pull
+    const o = order(dropInToolbar(DEFAULT_TOOLBAR, items, shown, "fetch", 3));
+    expect(o.slice(0, 5)).toEqual(["commit", "sep:1", "pull", "fetch", "push"]);
+  });
+  it("drops a button after the last one in the toolbar, ahead of what is in More", () => {
+    const o = order(dropInToolbar(DEFAULT_TOOLBAR, items, shown, "commit", 99));
+    expect(o.slice(0, 5)).toEqual(["sep:1", "fetch", "pull", "push", "commit"]);
+  });
+  it("brings a button out of More", () => {
+    const p = prefs({ more: ["tag", "terminal"] });
+    const r = dropInToolbar(p, items, shown, "tag", 1);
+    expect(r.more).toEqual(["terminal"]);
+    expect(orderedItems(r.order, items).slice(0, 3)).toEqual(["commit", "tag", "sep:1"]);
+  });
+  it("keeps the place of items that are not in this toolbar", () => {
+    const p = prefs({ order: ["commit", "gone", "fetch", "pull", "push"] });
+    const r = dropInToolbar(p, items, ["commit", "fetch", "pull", "push"], "push", 0);
+    expect(r.order.indexOf("gone")).toBe(1);
   });
 });

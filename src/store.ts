@@ -71,8 +71,7 @@ export interface Toast {
 export interface DialogField {
   key: string;
   label: string;
-  /** "icons" shows a grid of the icons in `options` (value = icon name) next to a "default" choice (value ""). */
-  type: "text" | "textarea" | "checkbox" | "select" | "icons";
+  type: "text" | "textarea" | "checkbox" | "select";
   value?: string | boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];

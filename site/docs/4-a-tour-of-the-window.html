@@ -79,7 +79,7 @@ they do and name the branches involved.</li>
 page on fixing errors, and the command palette has shortcuts to the most useful pages.</li>
 </ul>
 <h3 id="custom-buttons">Custom buttons</h3>
-<p>Click <strong>Add</strong> in the toolbar (or <strong>More → Add custom button…</strong>) to make a button of your own. Four kinds are available:</p>
+<p>Click <strong>Add</strong> in the toolbar (or <strong>More → Add custom button…</strong>) to make a button of your own. The dialog shows a live preview of the button as you type and offers four kinds:</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -105,14 +105,14 @@ page on fixing errors, and the command palette has shortcuts to the most useful 
 </tr>
 </tbody></table></div>
 <p>In a command you can write <code>{branch}</code> (the current branch), <code>{repo}</code> (the repository folder) and <code>{remote}</code> (the first
-remote&#39;s address, without any password). Treeline refuses to run a shell command whose branch or folder name holds a
+remote&#39;s address, without any password). The three buttons under the command field insert them where the cursor is. Treeline refuses to run a shell command whose branch or folder name holds a
 character that could be misread by the shell, and tells you why.</p>
 <p>Custom buttons run programs on your computer, so only create commands you understand. A button never runs by
 itself: it runs when you press it, and by default only after showing you the exact command.</p>
 <p><em>Save it for</em> decides where the button lives: <strong>Every repository</strong> (the whole app), <strong>This repository</strong> (in every tab that
 shows it) or <strong>This tab only</strong>. Buttons are kept in Treeline&#39;s own settings on your computer. They are never read from, or
 written into, a repository, so cloning someone else&#39;s repository can never add a button that runs a command.</p>
-<p>Pick an <strong>Icon</strong> from the grid (or leave it on <em>Auto</em> to use the icon of the kind of button).</p>
+<p>Pick an <strong>Icon</strong> from the grid (or leave it on <em>Auto</em> to use the icon of the kind of button); the preview shows it.</p>
 <p>Tick <em>Show it in the toolbar</em> to put the button in the toolbar; otherwise it is listed in the <strong>More</strong> menu. <em>Ask before
 running it</em> shows the exact command and waits for your <strong>Run</strong> (on by default).</p>
 <h3 id="ordering-the-toolbar">Ordering the toolbar</h3>
@@ -121,7 +121,13 @@ Tag, Merge to many, Clean up, Terminal, Explorer / Finder, and Sync subs when th
 your custom ones, in the order the toolbar shows them. Merge to many, Clean up, Terminal and Explorer / Finder start in the
 <strong>More</strong> menu; every other built-in button starts in the toolbar. Any of them can be moved either way.</p>
 <ul>
-<li>Use the arrows to move a button up or down. The order is the same in every tab and is remembered.</li>
+<li><strong>Drag a button in the toolbar itself.</strong> Press and hold it for a moment (the button shrinks slightly), then drag: a blue
+line shows where it will land. Drop it on <strong>More</strong> to put it in the menu instead. Press <strong>Esc</strong> to cancel. A quick click
+still runs the button, and moving the pointer before the hold is over never starts a drag.</li>
+<li><strong>Right-click a toolbar button</strong> for <em>Move left</em>, <em>Move right</em>, <em>Move to the More menu</em>, <em>Add a separator after</em> and
+<em>Customize toolbar…</em>; a custom button also has <em>Edit…</em> and <em>Remove…</em>.</li>
+<li>In <strong>Customize toolbar</strong> drag the grip at the start of a row, or use the arrows. The order is the same in every tab and is
+remembered.</li>
 <li>Untick <em>Toolbar</em> to move any button, built-in or custom, into the <strong>More</strong> menu; tick it to bring it back.</li>
 <li>A button that does not fit in a narrow window moves into <strong>More</strong> by itself, last buttons first, and keeps its order there.</li>
 <li>To bring a button out of <strong>More</strong>, open the menu and click <strong>Show in toolbar</strong> at the end of its row (or tick <em>Toolbar</em> in
@@ -134,6 +140,10 @@ is not drawn. The More menu shows them too, so its buttons stay in the same grou
 <li><strong>Reset order</strong> puts the buttons and separators back in their usual order, all in the toolbar. Custom buttons are kept.</li>
 </ul>
 <p>Each custom button also appears in the command palette as <em>Run: name</em>.</p>
+<p><strong>While it runs and afterwards.</strong> A button whose command is running pulses. A shell or git command that fails, or that prints
+something, shows its full output in a panel with the command, a <em>Finished</em> or <em>Failed</em> mark and a <strong>Copy output</strong> button. One that
+succeeds without printing anything only says so in a short message. Terminal-window and link buttons open their window or page
+and show no panel.</p>
 <p><strong>If a button does not run.</strong> Treeline says why in a message: a name that is empty or too long, a link that does not start
 with <code>http://</code>, <code>https://</code> or <code>mailto:</code>, a <code>{branch}</code> used while no branch is checked out, a branch or folder name with a
 character that is unsafe inside a shell command (such as <code>&quot;</code>, <code>%</code>, <code>$</code> or a backtick), or the settings file <code>buttons.json</code>

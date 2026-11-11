@@ -3,7 +3,7 @@ import { useApp } from "../store";
 import type { DialogSpec } from "../store";
 import { closeMenu, useUi } from "../uiStore";
 import { errorMessage } from "../api";
-import { Icon, type IconName } from "./Icon";
+import { Icon } from "./Icon";
 import { ErrorBox } from "./ErrorBox";
 import { Modal } from "./Modal";
 
@@ -163,28 +163,6 @@ function FormDialog({ spec }: { spec: DialogSpec }) {
                 <input type="checkbox" checked={!!values[f.key]} onChange={(e) => set(e.target.checked)} />
                 {f.label}
               </label>
-            );
-          if (f.type === "icons")
-            return (
-              <div key={f.key} className="field">
-                <span id={`field-${f.key}`}>{f.label}</span>
-                <div className="icon-grid" role="radiogroup" aria-labelledby={`field-${f.key}`}>
-                  {[{ value: "", label: "Default for this kind of button" }, ...(f.options ?? [])].map((o) => (
-                    <button
-                      key={o.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={values[f.key] === o.value}
-                      aria-label={o.label}
-                      title={o.label}
-                      className={`icon-choice${values[f.key] === o.value ? " on" : ""}`}
-                      onClick={() => set(o.value)}
-                    >
-                      {o.value ? <Icon name={o.value as IconName} size={18} /> : <span className="icon-default">Auto</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
             );
           return (
             <label key={f.key}>

@@ -175,7 +175,7 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 
 ### Custom buttons
 
-Click **Add** in the toolbar (or **More → Add custom button…**) to make a button of your own. Four kinds are available:
+Click **Add** in the toolbar (or **More → Add custom button…**) to make a button of your own. The dialog shows a live preview of the button as you type and offers four kinds:
 
 | Kind | What it does |
 |---|---|
@@ -185,7 +185,7 @@ Click **Add** in the toolbar (or **More → Add custom button…**) to make a bu
 | **Open a link** | Opens an `http://`, `https://` or `mailto:` link, for example your CI page. |
 
 In a command you can write `{branch}` (the current branch), `{repo}` (the repository folder) and `{remote}` (the first
-remote's address, without any password). Treeline refuses to run a shell command whose branch or folder name holds a
+remote's address, without any password). The three buttons under the command field insert them where the cursor is. Treeline refuses to run a shell command whose branch or folder name holds a
 character that could be misread by the shell, and tells you why.
 
 Custom buttons run programs on your computer, so only create commands you understand. A button never runs by
@@ -195,7 +195,7 @@ itself: it runs when you press it, and by default only after showing you the exa
 shows it) or **This tab only**. Buttons are kept in Treeline's own settings on your computer. They are never read from, or
 written into, a repository, so cloning someone else's repository can never add a button that runs a command.
 
-Pick an **Icon** from the grid (or leave it on *Auto* to use the icon of the kind of button).
+Pick an **Icon** from the grid (or leave it on *Auto* to use the icon of the kind of button); the preview shows it.
 
 Tick *Show it in the toolbar* to put the button in the toolbar; otherwise it is listed in the **More** menu. *Ask before
 running it* shows the exact command and waits for your **Run** (on by default).
@@ -207,7 +207,13 @@ Tag, Merge to many, Clean up, Terminal, Explorer / Finder, and Sync subs when th
 your custom ones, in the order the toolbar shows them. Merge to many, Clean up, Terminal and Explorer / Finder start in the
 **More** menu; every other built-in button starts in the toolbar. Any of them can be moved either way.
 
-* Use the arrows to move a button up or down. The order is the same in every tab and is remembered.
+* **Drag a button in the toolbar itself.** Press and hold it for a moment (the button shrinks slightly), then drag: a blue
+  line shows where it will land. Drop it on **More** to put it in the menu instead. Press **Esc** to cancel. A quick click
+  still runs the button, and moving the pointer before the hold is over never starts a drag.
+* **Right-click a toolbar button** for *Move left*, *Move right*, *Move to the More menu*, *Add a separator after* and
+  *Customize toolbar…*; a custom button also has *Edit…* and *Remove…*.
+* In **Customize toolbar** drag the grip at the start of a row, or use the arrows. The order is the same in every tab and is
+  remembered.
 * Untick *Toolbar* to move any button, built-in or custom, into the **More** menu; tick it to bring it back.
 * A button that does not fit in a narrow window moves into **More** by itself, last buttons first, and keeps its order there.
 * To bring a button out of **More**, open the menu and click **Show in toolbar** at the end of its row (or tick *Toolbar* in
@@ -220,6 +226,11 @@ your custom ones, in the order the toolbar shows them. Merge to many, Clean up, 
 * **Reset order** puts the buttons and separators back in their usual order, all in the toolbar. Custom buttons are kept.
 
 Each custom button also appears in the command palette as *Run: name*.
+
+**While it runs and afterwards.** A button whose command is running pulses. A shell or git command that fails, or that prints
+something, shows its full output in a panel with the command, a *Finished* or *Failed* mark and a **Copy output** button. One that
+succeeds without printing anything only says so in a short message. Terminal-window and link buttons open their window or page
+and show no panel.
 
 **If a button does not run.** Treeline says why in a message: a name that is empty or too long, a link that does not start
 with `http://`, `https://` or `mailto:`, a `{branch}` used while no branch is checked out, a branch or folder name with a

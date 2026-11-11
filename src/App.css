@@ -627,9 +627,8 @@ body.resizing .splitter::after { background: var(--accent); }
 .icon-choice { display: grid; place-items: center; height: 32px; border: 1px solid transparent; border-radius: var(--r-s); background: none; color: var(--muted); cursor: pointer; padding: 0; }
 .icon-choice:hover { background: var(--bg-4); color: var(--text); }
 .icon-choice.on { border-color: var(--accent); color: var(--text); background: var(--bg-3); }
-.icon-default { font-size: var(--fs-xs, 11px); }
-.tool-item { display: contents; }
-.cb-fill { display: inline-block; width: 70px; flex: none; }
+.icon-default { font-size: var(--fs-xs); }
+.tool-item { display: flex; align-items: center; gap: 2px; position: relative; border-radius: var(--r-s); }
 .cb .modal-actions { justify-content: space-between; }
 .cb-sep { border-style: dashed; background: transparent; }
 .cb-sep-line { width: 16px; height: 16px; flex: none; border-left: 2px solid var(--muted); margin-left: 7px; }
@@ -638,3 +637,69 @@ body.resizing .splitter::after { background: var(--accent); }
 .ctx-row > button:first-child { flex: 1; min-width: 0; }
 .ctx-menu button.ctx-aside { width: auto; flex: none; padding: 4px 8px; font-size: var(--fs-xs); color: var(--muted); }
 .ctx-menu button.ctx-aside:hover:not(:disabled) { color: var(--text); }
+
+/* Dragging in the toolbar: press and hold, then drag */
+.tool-item.pressing { transform: scale(0.94); background: var(--bg-3); transition: transform 0.35s ease-out; }
+.tool-item.dragging { opacity: 0.45; }
+.tool-item.drop-before::before, .tool-item.drop-after::after { content: ""; position: absolute; top: 2px; bottom: 2px; width: 2px; border-radius: 0; background: var(--accent); }
+.tool-item.drop-before::before { left: -2px; }
+.tool-item.drop-after::after { right: -2px; }
+.more-drop { display: inline-flex; border-radius: var(--r-s); }
+.more-drop.drop-target { outline: 2px solid var(--accent); background: var(--accent-soft); }
+body.toolbar-dragging, body.toolbar-dragging * { cursor: grabbing !important; }
+
+/* A custom button whose command is running */
+@keyframes tool-pulse { 50% { opacity: 0.3; } }
+.tool.running .tool-icon { animation: tool-pulse 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .tool.running .tool-icon { animation: none; opacity: 0.5; } }
+
+/* Customize toolbar: dragging rows */
+.cb-row { position: relative; }
+.cb-row.dragging { opacity: 0.45; }
+.cb-row.cb-drop-before::before, .cb-row.cb-drop-end::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; border-radius: 0; background: var(--accent); }
+.cb-row.cb-drop-before::before { top: -4px; }
+.cb-row.cb-drop-end::after { bottom: -4px; }
+.cb-grip { cursor: grab; touch-action: none; flex: none; }
+
+/* Add / edit a custom button */
+.modal.bd { width: 660px; max-width: 94vw; }
+.bd-top { display: flex; align-items: flex-end; gap: 16px; }
+.bd-name { flex: 1; min-width: 0; }
+.bd-preview { display: grid; place-items: center; min-width: 110px; height: 56px; border: 1px dashed var(--border-strong); border-radius: var(--r-m); background: var(--bg); }
+.bd-preview-tool { display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--text); max-width: 130px; }
+.bd-preview-tool .tool-label { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bd-kind { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-m); background: var(--bg); color: var(--text); cursor: pointer; }
+.bd-kind span { font-size: var(--fs-s); color: var(--muted); }
+.bd-kind:hover { border-color: var(--border-strong); }
+.bd-kind.on { border-color: var(--accent); background: var(--accent-soft); }
+.bd-command { display: flex; align-items: center; gap: 6px; }
+.bd-command input { flex: 1; min-width: 0; font-family: var(--mono); }
+.bd-prefix { color: var(--muted); font-family: var(--mono); }
+.bd-tokens { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bd-tokens .btn { font-family: var(--mono); }
+.bd-scopes { display: flex; gap: 6px; flex-wrap: wrap; }
+.bd-scope { padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--r-l); background: var(--bg); color: var(--text); cursor: pointer; font-size: var(--fs-s); }
+.bd-scope:hover { border-color: var(--border-strong); }
+.bd-scope.on { border-color: var(--accent); background: var(--accent-soft); }
+.modal.bd .icon-grid { grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); max-height: 168px; }
+.modal.bd .icon-choice { height: 36px; }
+
+/* What a custom button's command printed */
+.modal.bo { width: 760px; max-width: 94vw; }
+.bo-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bo-status { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: var(--fs-s); padding: 2px 9px; border-radius: var(--r-l); }
+.bo-status.ok { color: var(--ok-text); background: var(--ok-soft); }
+.bo-status.fail { color: var(--danger-text); background: var(--danger-soft); }
+.bo-command { display: block; overflow: auto; white-space: nowrap; color: var(--muted); font-family: var(--mono); font-size: var(--fs-s); }
+.bo-output { margin: 0; padding: 12px; max-height: 52vh; overflow: auto; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-m); font-size: var(--fs-s); white-space: pre-wrap; word-break: break-word; user-select: text; }
+
+/* Customize toolbar: the same columns on every row */
+.modal label.cb-pin { width: 86px; flex: none; }
+.cb-add-sep { width: 100px; justify-content: center; opacity: 0.5; }
+.cb-row:hover .cb-add-sep, .cb-add-sep:focus-visible { opacity: 1; }
+.cb-gap-pin { width: 86px; flex: none; }
+.cb-gap-sep { width: 100px; flex: none; }
+.cb-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; width: 84px; flex: none; }
+.cb-grip { color: var(--muted); }
+.cb-grip:hover:not(:disabled) { color: var(--text); }
