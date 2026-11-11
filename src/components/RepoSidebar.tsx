@@ -103,7 +103,7 @@ function FolderNode<T>({ tabId, scope, folder, depth, base, renderItem }: {
   );
 }
 
-export function RepoSidebar({ tab }: { tab: Tab }) {
+export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
   const d = useApp((s) => s.data[tab.id]);
   const setUi = useApp((s) => s.setUi);
   const a = repoActions(tab.id);
@@ -139,7 +139,7 @@ export function RepoSidebar({ tab }: { tab: Tab }) {
   const current = d?.status?.branch ?? null;
 
   return (
-    <aside className="repo-side">
+    <aside className="repo-side" style={width ? { width } : undefined}>
       <div className="filter-row">
         <Icon name="search" size={14} />
         <input placeholder="Filter branches, tags…" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter sidebar" />
