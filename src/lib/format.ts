@@ -44,6 +44,30 @@ export function listDate(unixSeconds: number, now = Date.now(), locale?: string)
   return d.toLocaleDateString(locale, sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** How the History Date column shows a commit's time. */
+export type DateFormat = "elapsed" | "date" | "datetime" | "timedate";
+
+export const DATE_FORMATS: { value: DateFormat; label: string }[] = [
+  { value: "elapsed", label: "Elapsed time (2 h ago)" },
+  { value: "date", label: "Date only (11 Jan 2026)" },
+  { value: "datetime", label: "Date and time (11 Jan 2026, 09:30)" },
+  { value: "timedate", label: "Time and date (09:30, 11 Jan 2026)" },
+];
+
+/** The Date column in the chosen format. `locale` is for tests; the app uses the system's. */
+export function formatListDate(unixSeconds: number, format: DateFormat, now = Date.now(), locale?: string): string {
+  const d = new Date(unixSeconds * 1000);
+  if (format === "date") return d.toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+  if (format === "datetime") {
+    return d.toLocaleString(locale, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+  if (format === "timedate") {
+    const time = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+    return `${time}, ${d.toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}`;
+  }
+  return listDate(unixSeconds, now, locale);
+}
+
 export function fullDate(unixSeconds: number): string {
   return new Date(unixSeconds * 1000).toLocaleString(undefined, {
     year: "numeric",
