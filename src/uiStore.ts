@@ -9,6 +9,8 @@ export interface MenuItem {
   disabled?: boolean;
   separator?: boolean;
   hint?: string;
+  /** A second, smaller action at the end of the row (for example "Show in toolbar"). */
+  aside?: { label: string; title: string; onClick: () => void };
 }
 
 const SECTIONS_KEY = "sidebar-sections";

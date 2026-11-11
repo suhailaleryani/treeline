@@ -47,6 +47,32 @@ export function ContextMenuHost() {
       {menu.items.map((it, i) =>
         it.separator ? (
           <hr key={i} />
+        ) : it.aside ? (
+          <div key={i} className="ctx-row">
+            <button
+              role="menuitem"
+              className={it.danger ? "danger" : ""}
+              disabled={it.disabled}
+              onClick={() => {
+                closeMenu();
+                it.onClick?.();
+              }}
+            >
+              <span>{it.label}</span>
+              {it.hint && <span className="hint-key">{it.hint}</span>}
+            </button>
+            <button
+              role="menuitem"
+              className="ctx-aside"
+              title={it.aside.title}
+              onClick={() => {
+                closeMenu();
+                it.aside?.onClick();
+              }}
+            >
+              {it.aside.label}
+            </button>
+          </div>
         ) : (
           <button
             key={i}

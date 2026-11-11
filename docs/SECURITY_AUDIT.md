@@ -92,3 +92,25 @@ against https://osv.dev (or run `cargo audit`).
 
 After a Tauri upgrade, when adding a command that takes a path or a name, when adding anything that
 loads remote content, when changing the release workflow, and at least once a year.
+
+## Addendum: custom toolbar buttons (2026-11-11)
+
+A later feature, reviewed by its author when it was written (not part of the audit above, and not an independent review).
+It lets the user create toolbar buttons that run a shell command, a git command, a command in a terminal window, or open
+a link, so it adds a command-running feature to an app that had none.
+
+| Risk | Control | Test |
+|---|---|---|
+| A repository adds a button that runs code when cloned | Buttons live only in `buttons.json` in the app config folder; nothing is read from a repository | By construction: no code path reads button definitions from a repository |
+| The page makes the app run a command of its choosing | The page sends a button id; the backend looks the command up and runs it only in a folder passed by `ensure_allowed` and `require_existing_folder` | `buttons.rs` unit tests (lookup by level) |
+| A branch name or path injected into a shell command (`a"&calc`, `$(...)`, `%PATH%`) | `{branch}`, `{repo}` and `{remote}` are inserted inside double quotes, and a value holding `"`, `%`, `` ` ``, `$`, `!`, a newline or (on Unix) `\` is refused | `a_value_that_could_break_out_of_the_shell_quotes_is_refused` |
+| A link that opens a program or file (`file:`, `javascript:`) | Only `http`, `https` and `mailto` links are accepted, and they are checked again after placeholders are filled in; values are percent-encoded | `what_the_user_typed_is_checked`, `placeholders_in_git_arguments_and_links` |
+| A password in a remote URL reaches a command | `{remote}` has any user name and password removed | `remote_urls_lose_their_credentials` |
+| A command that never ends, or floods memory | A 10-minute limit, and only the last 64 KB of output is kept | `only_the_end_of_long_output_is_kept`, a real shell run on Windows |
+| A corrupt saved file | An unreadable `buttons.json` is reported and never overwritten; writes go to a temporary file first | Reviewed |
+| Odd text in an icon name or label | Icon names must be lower-case letters, digits and dashes; labels and commands are length-limited and single-line | `icons_are_plain_names_or_absent` |
+
+Knowingly accepted: a button runs with the user's own rights, as a terminal would; and script in the page could still ask the
+backend to create a button (the page is the only component that can, and it loads no remote content under the content
+policy above). By default a button shows its exact command and asks before it runs. The macOS and Linux
+terminal-window paths were written without those systems to test on; see `docs/CROSS_PLATFORM_TESTING.md`.

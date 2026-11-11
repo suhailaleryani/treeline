@@ -50,12 +50,19 @@ Tick each line as pass (✅), fail (❌) or skipped (➖). Note anything odd eve
     `+O` open, `+R` refresh, `Ctrl+Tab` next tab, `F1` or `Cmd/Ctrl+?` opens the guide.
 17. ☐ **macOS only:** `Cmd+C`, `Cmd+V`, `Cmd+A`, `Cmd+Z` work in the commit message box and text fields; the menu bar looks sensible;
     `Cmd+Q` quits.
-18. ☐ The **Terminal** button opens a terminal in the repository folder; **Explorer** opens the folder in your file manager.
+18. ☐ **More → Open in Terminal** opens a terminal in the repository folder; **More → Show in Explorer / Finder** opens the folder in your file manager.
 19. ☐ The built-in guide (`F1`) opens in its own window and works with the network off.
 20. ☐ The theme follows your system's light/dark setting, and the ☀ button switches it.
 21. ☐ Looks right: fonts, spacing, icons, scrolling, on a high-DPI/Retina screen; the window resizes down to its minimum without breakage.
 22. ☐ **Linux only:** the file watcher still reacts on a large repository (if you see "too many open files", note it); under Wayland and X11 if you
     can try both.
+
+**Custom buttons** (the macOS and Linux parts of this feature were written without those systems to test on)
+23. ☐ **Add** a *Shell command* button `echo hello` (save it for *This repository*): pressing it shows the command, then a message with `hello`. Add a *Git command* button `status --short` and run it.
+24. ☐ **macOS / Linux:** a *Command in a terminal window* button (for example `git log --oneline -5`) opens Terminal (macOS) or the system terminal (Linux) in the repository folder, runs the command and leaves the window open. Note which terminal opened.
+25. ☐ A *Open a link* button `https://example.com/{branch}` opens your default browser; on a branch named `feature/x` the link ends `feature%2Fx`.
+26. ☐ **More → Customize toolbar…**: move a button up and down, untick *Toolbar* for one (it moves into **More**), add a separator, pick an icon for a custom button. In the **More** menu click **Show in toolbar** next to *Open in Terminal*: it appears in the toolbar and still works. Quit and start the app: the order, separators and icon are still there.
+27. ☐ Make the window narrow: buttons that do not fit move into **More** in the same order, and no separator is left dangling at an edge.
 
 ## 2. Report what you found
 

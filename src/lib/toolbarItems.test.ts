@@ -4,6 +4,7 @@ import {
   arrange,
   availableItems,
   cleanPrefs,
+  DEFAULT_MORE,
   DEFAULT_TOOLBAR,
   moveItem,
   orderedItems,
@@ -17,8 +18,11 @@ const prefs = (p: Partial<ToolbarPrefs> = {}): ToolbarPrefs => ({ ...DEFAULT_TOO
 const available = ["commit", "fetch", "pull", "push", "branch", "merge", "stash", "tag", "b1", "b2"];
 
 describe("availableItems", () => {
-  it("starts with the usual separators after Commit and after Push", () => {
-    expect(availableItems(DEFAULT_TOOLBAR, false, [])).toEqual(["commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag"]);
+  it("starts with the usual separators and the rarer actions at the end", () => {
+    expect(availableItems(DEFAULT_TOOLBAR, false, [])).toEqual([
+      "commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag",
+      "multimerge", "cleanup", "sep:3", "terminal", "reveal",
+    ]);
   });
   it("adds Sync subs only for a repository with submodules, and the custom buttons last", () => {
     const items = availableItems(DEFAULT_TOOLBAR, true, ["b1"]);
@@ -27,7 +31,8 @@ describe("availableItems", () => {
   });
   it("follows the separators the user kept", () => {
     expect(availableItems(prefs({ separators: ["sep:2", "sep:x"] }), false, [])).toEqual([
-      "commit", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag", "sep:x",
+      "commit", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag",
+      "multimerge", "cleanup", "terminal", "reveal", "sep:x",
     ]);
     expect(availableItems(prefs({ separators: [] }), false, [])).not.toContain("sep:1");
   });
@@ -62,10 +67,24 @@ describe("arrange", () => {
     expect(r.more).toEqual(["fetch", "stash", "tag", "b1", "b2"]);
   });
   it("shows everything on a wide window", () => {
-    expect(arrange(DEFAULT_TOOLBAR, available, Infinity).more).toEqual([]);
+    expect(arrange(prefs({ more: [] }), available, Infinity).more).toEqual([]);
   });
   it("shows nothing when there is no room", () => {
     expect(arrange(DEFAULT_TOOLBAR, available, 0).toolbar).toEqual([]);
+  });
+});
+
+describe("the rarer actions", () => {
+  const items = availableItems(DEFAULT_TOOLBAR, false, []);
+  it("start in More, grouped as they were in the menu", () => {
+    const r = arrange(DEFAULT_TOOLBAR, items, Infinity);
+    expect(r.toolbar).toEqual(["commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag"]);
+    expect(r.more).toEqual(["multimerge", "cleanup", "sep:3", "terminal", "reveal"]);
+  });
+  it("can be shown in the toolbar like any other button", () => {
+    const r = arrange(setInMore(DEFAULT_TOOLBAR, "terminal", false), items, Infinity);
+    expect(r.toolbar).toEqual(["commit", "sep:1", "fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag", "sep:3", "terminal"]);
+    expect(r.more).toEqual(["multimerge", "cleanup", "sep:3", "reveal"]);
   });
 });
 
@@ -79,18 +98,18 @@ describe("separators in the layout", () => {
     const r = arrange(DEFAULT_TOOLBAR, items, 4);
     expect(r.toolbar[r.toolbar.length - 1]).not.toMatch(/^sep:/);
     expect(r.more[0]).not.toMatch(/^sep:/);
-    expect(r.more).toEqual(["branch", "merge", "stash", "tag", "b1"]);
+    expect(r.more).toEqual(["branch", "merge", "stash", "tag", "multimerge", "cleanup", "sep:3", "terminal", "reveal", "b1"]);
   });
   it("collapse into one where a group has moved away", () => {
-    // Fetch, Pull and Push all in More: the two separators around them would meet in the toolbar
+    // Fetch, Pull and Push in More: the two separators around them would meet in the toolbar
     const r = arrange(prefs({ more: ["fetch", "pull", "push"] }), items, Infinity);
-    expect(r.toolbar).toEqual(["commit", "sep:1", "branch", "merge", "stash", "tag", "b1"]);
+    expect(r.toolbar).toEqual(["commit", "sep:1", "branch", "merge", "stash", "tag", "multimerge", "cleanup", "sep:3", "terminal", "reveal", "b1"]);
     expect(r.more).toEqual(["fetch", "pull", "push"]);
   });
   it("show up in More between its groups", () => {
     const r = arrange(DEFAULT_TOOLBAR, items, 1);
     expect(r.toolbar).toEqual(["commit"]);
-    expect(r.more).toEqual(["fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag", "b1"]);
+    expect(r.more).toEqual(["fetch", "pull", "push", "sep:2", "branch", "merge", "stash", "tag", "multimerge", "cleanup", "sep:3", "terminal", "reveal", "b1"]);
   });
 });
 
@@ -98,10 +117,9 @@ describe("addSeparator and removeSeparator", () => {
   const items = availableItems(DEFAULT_TOOLBAR, false, ["b1"]);
   it("adds a separator right after the chosen button", () => {
     const next = addSeparator(DEFAULT_TOOLBAR, items, "tag", "sep:new");
-    const after = availableItems(next, false, ["b1"]);
-    const order = orderedItems(next.order, after);
+    const order = orderedItems(next.order, availableItems(next, false, ["b1"]));
     expect(order.indexOf("sep:new")).toBe(order.indexOf("tag") + 1);
-    expect(next.separators).toEqual(["sep:1", "sep:2", "sep:new"]);
+    expect(next.separators).toEqual(["sep:1", "sep:2", "sep:3", "sep:new"]);
   });
   it("can add one between any two buttons, and again after that", () => {
     let p = addSeparator(DEFAULT_TOOLBAR, items, "merge", "sep:a");
@@ -111,7 +129,7 @@ describe("addSeparator and removeSeparator", () => {
   });
   it("removes a separator, even one of the defaults, and remembers that", () => {
     const p = removeSeparator(addSeparator(DEFAULT_TOOLBAR, items, "tag", "sep:new"), "sep:1");
-    expect(p.separators).toEqual(["sep:2", "sep:new"]);
+    expect(p.separators).toEqual(["sep:2", "sep:3", "sep:new"]);
     expect(availableItems(p, false, [])).not.toContain("sep:1");
     expect(p.order).not.toContain("sep:1");
   });
@@ -129,7 +147,7 @@ describe("moveItem", () => {
   });
   it("moves a separator like any other item", () => {
     const items = availableItems(DEFAULT_TOOLBAR, false, []);
-    const p = moveItem(DEFAULT_TOOLBAR, items, "sep:1", items.indexOf("tag"));
+    const p = moveItem(DEFAULT_TOOLBAR, items, "sep:1", items.length - 1);
     const ordered = orderedItems(p.order, items);
     expect(ordered[ordered.length - 1]).toBe("sep:1");
   });
@@ -153,14 +171,27 @@ describe("withOrder", () => {
 
 describe("setInMore and cleanPrefs", () => {
   it("moves a button in and out of More", () => {
-    const a = setInMore(DEFAULT_TOOLBAR, "tag", true);
+    const base = prefs({ more: [] });
+    const a = setInMore(base, "tag", true);
     expect(a.more).toEqual(["tag"]);
     expect(setInMore(a, "tag", true).more).toEqual(["tag"]);
     expect(setInMore(a, "tag", false).more).toEqual([]);
   });
-  it("drops saved values that are not lists of strings", () => {
+  it("starts with the rarer actions in More", () => {
     expect(cleanPrefs(undefined)).toEqual(DEFAULT_TOOLBAR);
-    expect(cleanPrefs({ order: ["a", 3, "", "a"], more: "x", separators: ["sep:1", "tag", 4] })).toEqual({ order: ["a"], more: [], separators: ["sep:1"] });
+    expect(DEFAULT_TOOLBAR.more).toEqual(DEFAULT_MORE);
+  });
+  it("drops saved values that are not lists of strings", () => {
+    expect(cleanPrefs({ version: 2, order: ["a", 3, "", "a"], more: "x", separators: ["sep:1", "tag", 4] })).toEqual({
+      version: 2,
+      order: ["a"],
+      more: [],
+      separators: ["sep:1"],
+    });
+  });
+  it("puts the rarer actions in More for a toolbar saved before they were buttons, but not after", () => {
+    expect(cleanPrefs({ order: ["tag"], more: ["fetch"] }).more).toEqual(["fetch", ...DEFAULT_MORE]);
+    expect(cleanPrefs({ version: 2, more: ["fetch"] }).more).toEqual(["fetch"]);
   });
   it("reads a toolbar saved before separators existed as having the default ones", () => {
     expect(cleanPrefs({ order: ["tag"], more: ["fetch"] }).separators).toBeNull();

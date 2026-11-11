@@ -56,6 +56,7 @@ Linux builds and Intel Mac builds are untested (see the status table above). Pre
 | **Remotes** | Automatic background fetch of the active tab (every 2 minutes by default; choose 15 seconds to 30 minutes, or off, in Settings; silent). Fetch, pull (merge / rebase / fast-forward only), push (upstream, tags, force-with-lease) with progress. |
 | **Merge tools** | Merge (`--no-ff`, squash), rebase, **interactive rebase** (pick/reword/edit/squash/fixup/drop, reorder), cherry-pick, revert, reset, stash, and a **conflict resolver** with per-conflict ours/theirs/both and an editable result; buttons explain themselves on hover and name the real branches. |
 | **Merge to many** | Merge one branch (a bug fix, say) into several release branches at once. Every merge is test-run first, so you see which are clean and which would conflict, and in which files, before anything changes. Resolve a conflicting branch, resume, and **reuse your resolution** on the others; merges that silently dropped your change are flagged. |
+| **Custom buttons** | Add your own toolbar buttons: a shell command, a git command, a command in a terminal window or a link, with `{branch}`, `{repo}` and `{remote}`. Save one for the whole app, one repository or one tab; pick its icon; order every toolbar button (built-in and custom, including the actions that start in **More**), move any of them between the toolbar and the **More** menu, and add separators between groups. Commands are kept and run by the backend, never read from a repository. |
 | **Security** | Asks before opening a repository whose own settings or hooks can run programs, works only on folders you opened, hides credentials in messages, refuses writes through symbolic links, uses a strict content policy and verifies signed updates. See [SECURITY.md](SECURITY.md). |
 | **Errors that help** | Every failure is explained in plain language with numbered fixes and one-click actions (Pull, Stash, Remove lock file …). Risky "force" options are offered last and always confirmed first. |
 | **UX** | Command palette, context menus, dark/light theme, resizable panes, keyboard shortcuts, and the full user guide built in (`F1`, works offline). |
@@ -226,6 +227,9 @@ scripts/                       site build/check, guide bundling, Linux setup/bui
 src/                           React UI
   store.ts                     app state (tabs, bookmarks, per-repo data, refresh logic)
   actions.ts                   every user action (fetch, push, merge …) shared by toolbar, menus and palette
+  buttons.ts                   custom toolbar buttons: list, save, run, and the add/edit dialog
+  lib/toolbarItems.ts          the toolbar as one ordered list (built-in and custom buttons, separators)
+  lib/toolbarLayout.ts         how many toolbar items fit at a given window width
   guide.ts                     opens the built-in guide window
   lib/diff.ts                  unified-diff parser and hunk/line patch builder
   lib/graph.ts                 commit-graph lane layout and branch reachability
@@ -235,8 +239,9 @@ src/                           React UI
 src-tauri/src/
   git.rs                       process helpers, status, submodules, clone
   ops.rs                       staging, commits, history, branches, remotes, merge/rebase, stash, conflicts
+  buttons.rs                   custom toolbar buttons: storage (buttons.json) and running them
   watcher.rs                   file-system watcher for the active repo
-  store.rs                     state persistence
+  store.rs                     state persistence (tabs, bookmarks, recent repositories, toolbar order)
 ```
 
 ## Notes

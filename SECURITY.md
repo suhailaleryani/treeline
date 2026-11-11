@@ -30,6 +30,11 @@ treats every repository, branch name, file name and commit message as untrusted 
   error and progress messages.
 - **Strict content policy.** The window loads only its own code and styles, with no remote content,
   no inline scripts and no `eval`.
+- **Custom buttons run only what you set up.** A toolbar button can run a shell command, a git command or a command in a
+  terminal window. Buttons are saved in a file only the app writes, never read from a repository, so cloning one cannot
+  add a button. The window only names a button by its id; the backend looks up and runs the command itself, in a folder you
+  opened. A branch or folder name placed into a shell command is refused if it holds a character that could break out of its
+  quotes, a link must be `http`, `https` or `mailto`, and by default a button shows its exact command and asks first.
 - **Signed updates.** Updates are verified against a public key built into the app.
 - **Outdated Git.** At start-up Treeline tells you if your Git predates the 2025 security fixes for
   cloning and submodules.

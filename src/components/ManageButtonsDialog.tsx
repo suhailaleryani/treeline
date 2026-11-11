@@ -1,5 +1,5 @@
 import { deleteButton, iconOf, KIND_LABEL, openButtonDialog, SCOPE_LABEL, useTabButtons } from "../buttons";
-import { addSeparator, availableItems, BUILTIN_META, DEFAULT_TOOLBAR, isBuiltin, isSeparator, moveItem, orderedItems, removeSeparator, setInMore } from "../lib/toolbarItems";
+import { addSeparator, availableItems, BUILTIN_META, builtinLabel, DEFAULT_TOOLBAR, isBuiltin, isSeparator, moveItem, orderedItems, removeSeparator, setInMore } from "../lib/toolbarItems";
 import { useApp } from "../store";
 import { Icon } from "./Icon";
 import { Modal } from "./Modal";
@@ -63,7 +63,7 @@ export function ManageButtonsDialog({ tabId, onClose }: { tabId: string; onClose
           }
           const b = custom.find((c) => c.id === id);
           const meta = isBuiltin(id) ? BUILTIN_META[id] : null;
-          const label = b?.label ?? meta?.label ?? id;
+          const label = b?.label ?? (isBuiltin(id) ? builtinLabel(id) : id);
           return (
             <div key={id} className="cb-row" role="listitem">
               <Icon name={b ? iconOf(b) : (meta?.icon ?? "command")} size={16} />

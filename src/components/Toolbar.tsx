@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { repoActions } from "../actions";
 import { iconOf, loadButtons, openButtonDialog, runButton, useTabButtons } from "../buttons";
 import { useElementWidth } from "../hooks";
-import { arrange, availableItems, BUILTIN_IDS, BUILTIN_META, isSeparator, type BuiltinId } from "../lib/toolbarItems";
+import { arrange, availableItems, BUILTIN_IDS, BUILTIN_META, builtinLabel, isSeparator, moveItem, setInMore, type BuiltinId } from "../lib/toolbarItems";
 import { fileManagerName, toolbarLayout } from "../lib/toolbarLayout";
 import { useApp } from "../store";
 import { openMenu, useUi, type MenuItem } from "../uiStore";
@@ -73,7 +73,8 @@ export function Toolbar({ tab }: { tab: Tab }) {
 
   const branch = s?.branch;
   const builtin = (id: BuiltinId): ItemSpec => {
-    const { label, icon } = BUILTIN_META[id];
+    const { icon } = BUILTIN_META[id];
+    const label = builtinLabel(id);
     switch (id) {
       case "commit":
         return {
@@ -147,6 +148,30 @@ export function Toolbar({ tab }: { tab: Tab }) {
         return { button: <Btn icon={icon} label={label} onClick={() => a.stash()} />, menu: [{ label: "Stash…", onClick: () => a.stash() }] };
       case "tag":
         return { button: <Btn icon={icon} label={label} onClick={() => a.newTag()} />, menu: [{ label: "New tag…", onClick: () => a.newTag() }] };
+      case "multimerge": {
+        const open = () => useUi.setState({ multiMerge: { tabId: tab.id } });
+        return {
+          button: <Btn icon={icon} label={label} title="Merge one branch into several, with a conflict check first" onClick={open} />,
+          menu: [{ label: "Merge into several branches…", onClick: open }],
+        };
+      }
+      case "cleanup": {
+        const open = () => useUi.setState({ mergedBranches: { tabId: tab.id } });
+        return {
+          button: <Btn icon={icon} label={label} title="Delete branches that are already merged" onClick={open} />,
+          menu: [{ label: "Clean up merged branches…", onClick: open }],
+        };
+      }
+      case "terminal":
+        return {
+          button: <Btn icon={icon} label={label} title="Open a terminal in the repository folder" onClick={() => a.terminal()} />,
+          menu: [{ label: "Open in Terminal", onClick: () => a.terminal() }],
+        };
+      case "reveal":
+        return {
+          button: <Btn icon={icon} label={label} title={`Show the repository folder in ${label}`} onClick={() => a.reveal()} />,
+          menu: [{ label: `Show in ${label}`, onClick: () => a.reveal() }],
+        };
     }
   };
 
@@ -161,20 +186,30 @@ export function Toolbar({ tab }: { tab: Tab }) {
   }
 
   // One list in the order the user chose; what does not fit the window, and what the user put in More, is listed there.
-  const { toolbar, more } = arrange(prefs, availableItems(prefs, hasSubmodules, custom.map((b) => b.id)), layout.capacity);
+  const available = availableItems(prefs, hasSubmodules, custom.map((b) => b.id));
+  const { all, toolbar, more } = arrange(prefs, available, layout.capacity);
+
+  // Brings a button out of More. When the toolbar is already full it takes the place of the last button there, which moves into More.
+  const promote = (id: string) => {
+    const next = setInMore(prefs, id, false);
+    const shown = toolbar.filter((x) => !isSeparator(x));
+    const last = shown[shown.length - 1];
+    const full = shown.length >= layout.capacity && last !== undefined;
+    useApp.getState().setToolbar(full ? moveItem(next, available, id, all.indexOf(last)) : next);
+  };
 
   const openMore = (e: React.MouseEvent<HTMLButtonElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    const moved: MenuItem[] = more.flatMap((id) => (isSeparator(id) ? [{ separator: true }] : (specs.get(id)?.menu ?? [])));
+    const moved: MenuItem[] = more.flatMap((id): MenuItem[] =>
+      isSeparator(id)
+        ? [{ separator: true }]
+        : (specs.get(id)?.menu ?? []).map((m, i) =>
+            i === 0 ? { ...m, aside: { label: "Show in toolbar", title: "Put this button in the toolbar", onClick: () => promote(id) } } : m,
+          ),
+    );
     openMenu({ clientX: r.right - 220, clientY: r.bottom + 4 }, [
       ...moved,
       ...(moved.length ? [{ separator: true as const }] : []),
-      { label: "Merge into several branches…", onClick: () => useUi.setState({ multiMerge: { tabId: tab.id } }) },
-      { label: "Clean up merged branches…", onClick: () => useUi.setState({ mergedBranches: { tabId: tab.id } }) },
-      { separator: true },
-      { label: "Open in Terminal", onClick: () => a.terminal() },
-      { label: `Show in ${fileManagerName()}`, onClick: () => a.reveal() },
-      { separator: true },
       { label: "Add custom button…", onClick: () => openButtonDialog(tab.id) },
       { label: "Customize toolbar…", onClick: () => useUi.setState({ manageButtons: { tabId: tab.id } }) },
     ]);

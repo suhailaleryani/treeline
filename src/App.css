@@ -634,3 +634,7 @@ body.resizing .splitter::after { background: var(--accent); }
 .cb-sep { border-style: dashed; background: transparent; }
 .cb-sep-line { width: 16px; height: 16px; flex: none; border-left: 2px solid var(--muted); margin-left: 7px; }
 .cb-add-sep { flex: none; }
+.ctx-row { display: flex; align-items: center; gap: 2px; }
+.ctx-row > button:first-child { flex: 1; min-width: 0; }
+.ctx-menu button.ctx-aside { width: auto; flex: none; padding: 4px 8px; font-size: var(--fs-xs); color: var(--muted); }
+.ctx-menu button.ctx-aside:hover:not(:disabled) { color: var(--text); }

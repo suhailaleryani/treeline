@@ -1,12 +1,18 @@
 import type { IconName } from "../components/Icon";
+import { fileManagerName } from "./toolbarLayout";
 
 // The toolbar is one ordered list of items: the built-in buttons, the user's custom ones and separators between groups.
 // The user chooses the order, which buttons live in the More menu and where the separators are; all of it is saved as lists
 // of ids, so an item that is not there now (a custom button of another repository, Sync subs in a repository without
 // submodules) keeps its place for when it comes back.
 
-/** The built-in buttons, in their default order. "subs" is only there for a repository that has submodules. */
-export const BUILTIN_IDS = ["commit", "fetch", "pull", "push", "subs", "branch", "merge", "stash", "tag"] as const;
+/**
+ * The built-in buttons, in their default order. "subs" is only there for a repository that has submodules. The last four
+ * (Merge to many, Clean up, Terminal and the file manager) start in the More menu.
+ */
+export const BUILTIN_IDS = [
+  "commit", "fetch", "pull", "push", "subs", "branch", "merge", "stash", "tag", "multimerge", "cleanup", "terminal", "reveal",
+] as const;
 export type BuiltinId = (typeof BUILTIN_IDS)[number];
 
 export const isBuiltin = (id: string): id is BuiltinId => (BUILTIN_IDS as readonly string[]).includes(id);
@@ -15,11 +21,17 @@ export const isBuiltin = (id: string): id is BuiltinId => (BUILTIN_IDS as readon
 const SEPARATOR_PREFIX = "sep:";
 export const isSeparator = (id: string): boolean => id.startsWith(SEPARATOR_PREFIX);
 
-/** The separators a toolbar starts with: after Commit and after Push, where the groups of daily buttons end. */
-export const DEFAULT_SEPARATORS = ["sep:1", "sep:2"];
+/** The separators a toolbar starts with: after Commit and after Push, and between the two pairs of rarer actions. */
+export const DEFAULT_SEPARATORS = ["sep:1", "sep:2", "sep:3"];
 
 /** Everything the toolbar starts with, in its default order. */
-const DEFAULT_ITEMS = ["commit", "sep:1", "fetch", "pull", "push", "sep:2", "subs", "branch", "merge", "stash", "tag"];
+const DEFAULT_ITEMS = [
+  "commit", "sep:1", "fetch", "pull", "push", "sep:2", "subs", "branch", "merge", "stash", "tag",
+  "multimerge", "cleanup", "sep:3", "terminal", "reveal",
+];
+
+/** The buttons that start in the More menu. */
+export const DEFAULT_MORE: string[] = ["multimerge", "cleanup", "terminal", "reveal"];
 
 /** How each built-in button is named and drawn (also in the dialog that orders them). */
 export const BUILTIN_META: Record<BuiltinId, { label: string; icon: IconName }> = {
@@ -32,10 +44,19 @@ export const BUILTIN_META: Record<BuiltinId, { label: string; icon: IconName }> 
   merge: { label: "Merge", icon: "merge" },
   stash: { label: "Stash", icon: "stash" },
   tag: { label: "Tag", icon: "tag" },
+  multimerge: { label: "Merge to many", icon: "layers" },
+  cleanup: { label: "Clean up", icon: "trash" },
+  terminal: { label: "Terminal", icon: "terminal" },
+  reveal: { label: "File manager", icon: "folder" },
 };
+
+/** The name a built-in button is shown with; the file manager is called what the platform calls it. */
+export const builtinLabel = (id: BuiltinId): string => (id === "reveal" ? fileManagerName() : BUILTIN_META[id].label);
 
 /** What the user changed. All lists hold item ids; an empty `order` means the default order. */
 export interface ToolbarPrefs {
+  /** 2 once the rarer actions (Merge to many and the like) became buttons; an older saved toolbar gets them put in More. */
+  version: 2;
   order: string[];
   /** Buttons the user put in the More menu instead of the toolbar. */
   more: string[];
@@ -43,16 +64,18 @@ export interface ToolbarPrefs {
   separators: string[] | null;
 }
 
-export const DEFAULT_TOOLBAR: ToolbarPrefs = { order: [], more: [], separators: null };
+export const DEFAULT_TOOLBAR: ToolbarPrefs = { version: 2, order: [], more: DEFAULT_MORE, separators: null };
 
 /** Reads saved preferences defensively: anything that is not a list of short strings is dropped. */
 export function cleanPrefs(value: unknown): ToolbarPrefs {
   const list = (v: unknown): string[] =>
     Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length < 100))] : [];
-  const o = (value ?? {}) as { order?: unknown; more?: unknown; separators?: unknown };
+  const o = (value ?? {}) as { version?: unknown; order?: unknown; more?: unknown; separators?: unknown };
+  const more = list(o.more);
   return {
+    version: 2,
     order: list(o.order),
-    more: list(o.more),
+    more: o.version === 2 ? more : [...more, ...DEFAULT_MORE.filter((id) => !more.includes(id))],
     separators: Array.isArray(o.separators) ? list(o.separators).filter(isSeparator) : null,
   };
 }
@@ -174,8 +197,8 @@ export function addSeparator(
 /** Removes a separator for good. */
 export function removeSeparator(prefs: ToolbarPrefs, id: string): ToolbarPrefs {
   return {
+    ...prefs,
     order: prefs.order.filter((x) => x !== id),
-    more: prefs.more,
     separators: (prefs.separators ?? DEFAULT_SEPARATORS).filter((x) => x !== id),
   };
 }

@@ -46,7 +46,7 @@
 <article class="prose">
 <h1>4. A tour of the window</h1>
 <pre><code>┌ Tabs ─────────────────────────────────────────────────────  ⌘ palette · ☀ theme ┐
-│ Repo name · branch chip · ★   [Commit][Fetch][Pull▾][Push] [Branch][Sync subs][Merge][Merge to many][Stash][Tag] [Terminal][Explorer][Refresh] │
+│ Repo name · branch chip · ★   [Commit] [Fetch][Pull▾][Push] [Branch][Sync subs][Merge][Stash][Tag] [Add][More][Refresh]        │
 ├──────────────┬──────────────────────────────────────────────────────────────────┤
 │  Sidebar     │  Main area: File status  — or —  History                         │
 │  • File status│                                                                  │
@@ -64,20 +64,84 @@
 <li><strong>Toolbar badges:</strong> the number on <em>Commit</em> is how many files changed; on <em>Push</em> how many commits you haven&#39;t pushed; on
 <em>Pull</em> how many commits are waiting on the server.</li>
 <li><strong>Branch chip</strong> <code>main ↑1 ↓2</code> – you are 1 commit ahead of and 2 commits behind the remote branch.</li>
-<li><strong>Sync subs</strong> appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers <strong>Sync</strong> (the same) and <strong>Sync and pull</strong> (switch, then pull each one). <strong>Merge to many</strong> merges one branch into several at
-once, with a conflict check first (section 10).</li>
+<li><strong>Sync subs</strong> appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers <strong>Sync</strong> (the same) and <strong>Sync and pull</strong> (switch, then pull each one).</li>
+<li><strong>More</strong> holds the less common actions: <strong>Merge into several branches…</strong> (merges one branch into several at once, with a
+conflict check first; section 10), <strong>Clean up merged branches…</strong>, <strong>Open in Terminal</strong> and <strong>Show in Explorer / Finder</strong>,
+plus any toolbar buttons that do not fit the window. They are ordinary toolbar buttons that start here: click <strong>Show in
+toolbar</strong> next to one to bring it out (see <em>Ordering the toolbar</em> below). <strong>Add</strong> makes a button of your own.</li>
 <li><strong>Hover for hints.</strong> The buttons in the conflict resolver (Use ours, Keep theirs, Mark resolved …) explain exactly what
 they do and name the branches involved.</li>
 <li><strong>Right-click</strong> almost anything (branches, tags, stashes, files, commits, submodules) for its actions.</li>
 <li><strong>Drag the thin dividers</strong> between panels to resize them; sizes are remembered.</li>
 <li><strong>Theme:</strong> the ☀ button switches light/dark (or choose “follow system” in the command palette).</li>
-<li><strong>Command palette</strong> (<code>Ctrl+K</code>): type to find any action — Fetch, New branch, Check out <em>x</em>, Open bookmark <em>y</em>…</li>
+<li><strong>Command palette</strong> (<code>Ctrl+K</code>): type to find any action — Fetch, New branch, Check out <em>x</em>, Open bookmark <em>y</em>, Run <em>a custom button</em>…</li>
 <li><strong>This guide is built into the app.</strong> Press <code>F1</code> or click the <strong>?</strong> button at the top right. It opens in its own window and works offline. Error panels have a <strong>Learn more</strong> button that opens the
 page on fixing errors, and the command palette has shortcuts to the most useful pages.</li>
 </ul>
+<h3 id="custom-buttons">Custom buttons</h3>
+<p>Click <strong>Add</strong> in the toolbar (or <strong>More → Add custom button…</strong>) to make a button of your own. Four kinds are available:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Shell command</strong></td>
+<td>Runs a command in the repository&#39;s folder (for example <code>npm test</code>) and shows its output when it ends. It is stopped after 10 minutes.</td>
+</tr>
+<tr>
+<td><strong>Git command</strong></td>
+<td>Runs <code>git</code> with the arguments you type (for example <code>fetch --prune</code>); no shell is involved.</td>
+</tr>
+<tr>
+<td><strong>Command in a terminal window</strong></td>
+<td>Opens a terminal in the repository&#39;s folder and runs the command there, so you can watch it and type into it.</td>
+</tr>
+<tr>
+<td><strong>Open a link</strong></td>
+<td>Opens an <code>http://</code>, <code>https://</code> or <code>mailto:</code> link, for example your CI page.</td>
+</tr>
+</tbody></table></div>
+<p>In a command you can write <code>{branch}</code> (the current branch), <code>{repo}</code> (the repository folder) and <code>{remote}</code> (the first
+remote&#39;s address, without any password). Treeline refuses to run a shell command whose branch or folder name holds a
+character that could be misread by the shell, and tells you why.</p>
+<p>Custom buttons run programs on your computer, so only create commands you understand. A button never runs by
+itself: it runs when you press it, and by default only after showing you the exact command.</p>
+<p><em>Save it for</em> decides where the button lives: <strong>Every repository</strong> (the whole app), <strong>This repository</strong> (in every tab that
+shows it) or <strong>This tab only</strong>. Buttons are kept in Treeline&#39;s own settings on your computer. They are never read from, or
+written into, a repository, so cloning someone else&#39;s repository can never add a button that runs a command.</p>
+<p>Pick an <strong>Icon</strong> from the grid (or leave it on <em>Auto</em> to use the icon of the kind of button).</p>
+<p>Tick <em>Show it in the toolbar</em> to put the button in the toolbar; otherwise it is listed in the <strong>More</strong> menu. <em>Ask before
+running it</em> shows the exact command and waits for your <strong>Run</strong> (on by default).</p>
+<h3 id="ordering-the-toolbar">Ordering the toolbar</h3>
+<p><strong>More → Customize toolbar…</strong> lists every toolbar button, the built-in ones (Commit, Fetch, Pull, Push, Branch, Merge, Stash,
+Tag, Merge to many, Clean up, Terminal, Explorer / Finder, and Sync subs when the repository has submodules) together with
+your custom ones, in the order the toolbar shows them. Merge to many, Clean up, Terminal and Explorer / Finder start in the
+<strong>More</strong> menu; every other built-in button starts in the toolbar. Any of them can be moved either way.</p>
+<ul>
+<li>Use the arrows to move a button up or down. The order is the same in every tab and is remembered.</li>
+<li>Untick <em>Toolbar</em> to move any button, built-in or custom, into the <strong>More</strong> menu; tick it to bring it back.</li>
+<li>A button that does not fit in a narrow window moves into <strong>More</strong> by itself, last buttons first, and keeps its order there.</li>
+<li>To bring a button out of <strong>More</strong>, open the menu and click <strong>Show in toolbar</strong> at the end of its row (or tick <em>Toolbar</em> in
+this dialog). If the toolbar is already full, the button takes the place of the last one, which moves into <strong>More</strong>.</li>
+<li><strong>Separators</strong> divide the toolbar into groups. The toolbar starts with one after Commit, one after Push, and one between the two pairs of rarer actions in <strong>More</strong>. Click the separator
+button on a row to add a new separator after that button, move it with the arrows like any other item, or remove it with
+the trash icon. Separators take no room, and one that would end up at the edge of a group, or next to another separator,
+is not drawn. The More menu shows them too, so its buttons stay in the same groups.</li>
+<li><strong>Edit</strong> and the trash icon change or remove a custom button (built-in buttons cannot be edited or removed).</li>
+<li><strong>Reset order</strong> puts the buttons and separators back in their usual order, all in the toolbar. Custom buttons are kept.</li>
+</ul>
+<p>Each custom button also appears in the command palette as <em>Run: name</em>.</p>
+<p><strong>If a button does not run.</strong> Treeline says why in a message: a name that is empty or too long, a link that does not start
+with <code>http://</code>, <code>https://</code> or <code>mailto:</code>, a <code>{branch}</code> used while no branch is checked out, a branch or folder name with a
+character that is unsafe inside a shell command (such as <code>&quot;</code>, <code>%</code>, <code>$</code> or a backtick), or the settings file <code>buttons.json</code>
+being unreadable. A shell command that exits with an error shows its output in the message. On macOS and Linux the
+terminal-window kind needs a terminal program (Terminal on macOS; <code>x-terminal-emulator</code> on Linux).</p>
 
 </article>
-
+<aside class="on-page" aria-label="On this page"><strong>On this page</strong><ul><li><a href="#custom-buttons">Custom buttons</a></li><li><a href="#ordering-the-toolbar">Ordering the toolbar</a></li></ul></aside>
 <nav class="pager" aria-label="Previous and next page">
   <a class="prev" href="3-tabs-and-bookmarks.html"><small>Previous</small>3. Tabs and bookmarks</a>
   <a class="next" href="5-everyday-workflow.html"><small>Next</small>5. Everyday workflow</a>

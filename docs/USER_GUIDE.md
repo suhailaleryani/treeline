@@ -141,7 +141,7 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 
 ```
 ┌ Tabs ─────────────────────────────────────────────────────  ⌘ palette · ☀ theme ┐
-│ Repo name · branch chip · ★   [Commit][Fetch][Pull▾][Push] [Branch][Sync subs][Merge][Merge to many][Stash][Tag] [Terminal][Explorer][Refresh] │
+│ Repo name · branch chip · ★   [Commit] [Fetch][Pull▾][Push] [Branch][Sync subs][Merge][Stash][Tag] [Add][More][Refresh]        │
 ├──────────────┬──────────────────────────────────────────────────────────────────┤
 │  Sidebar     │  Main area: File status  — or —  History                         │
 │  • File status│                                                                  │
@@ -159,14 +159,17 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 * **Toolbar badges:** the number on *Commit* is how many files changed; on *Push* how many commits you haven't pushed; on
   *Pull* how many commits are waiting on the server.
 * **Branch chip** `main ↑1 ↓2` – you are 1 commit ahead of and 2 commits behind the remote branch.
-* **Sync subs** appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers **Sync** (the same) and **Sync and pull** (switch, then pull each one). **Merge to many** merges one branch into several at
-  once, with a conflict check first (section 10).
+* **Sync subs** appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers **Sync** (the same) and **Sync and pull** (switch, then pull each one).
+* **More** holds the less common actions: **Merge into several branches…** (merges one branch into several at once, with a
+  conflict check first; section 10), **Clean up merged branches…**, **Open in Terminal** and **Show in Explorer / Finder**,
+  plus any toolbar buttons that do not fit the window. They are ordinary toolbar buttons that start here: click **Show in
+  toolbar** next to one to bring it out (see *Ordering the toolbar* below). **Add** makes a button of your own.
 * **Hover for hints.** The buttons in the conflict resolver (Use ours, Keep theirs, Mark resolved …) explain exactly what
   they do and name the branches involved.
 * **Right-click** almost anything (branches, tags, stashes, files, commits, submodules) for its actions.
 * **Drag the thin dividers** between panels to resize them; sizes are remembered.
 * **Theme:** the ☀ button switches light/dark (or choose “follow system” in the command palette).
-* **Command palette** (`Ctrl+K`): type to find any action — Fetch, New branch, Check out *x*, Open bookmark *y*…
+* **Command palette** (`Ctrl+K`): type to find any action — Fetch, New branch, Check out *x*, Open bookmark *y*, Run *a custom button*…
 * **This guide is built into the app.** Press `F1` or click the **?** button at the top right. It opens in its own window and works offline. Error panels have a **Learn more** button that opens the
   page on fixing errors, and the command palette has shortcuts to the most useful pages.
 
@@ -185,6 +188,9 @@ In a command you can write `{branch}` (the current branch), `{repo}` (the reposi
 remote's address, without any password). Treeline refuses to run a shell command whose branch or folder name holds a
 character that could be misread by the shell, and tells you why.
 
+Custom buttons run programs on your computer, so only create commands you understand. A button never runs by
+itself: it runs when you press it, and by default only after showing you the exact command.
+
 *Save it for* decides where the button lives: **Every repository** (the whole app), **This repository** (in every tab that
 shows it) or **This tab only**. Buttons are kept in Treeline's own settings on your computer. They are never read from, or
 written into, a repository, so cloning someone else's repository can never add a button that runs a command.
@@ -197,12 +203,16 @@ running it* shows the exact command and waits for your **Run** (on by default).
 ### Ordering the toolbar
 
 **More → Customize toolbar…** lists every toolbar button, the built-in ones (Commit, Fetch, Pull, Push, Branch, Merge, Stash,
-Tag, and Sync subs when the repository has submodules) together with your custom ones, in the order the toolbar shows them.
+Tag, Merge to many, Clean up, Terminal, Explorer / Finder, and Sync subs when the repository has submodules) together with
+your custom ones, in the order the toolbar shows them. Merge to many, Clean up, Terminal and Explorer / Finder start in the
+**More** menu; every other built-in button starts in the toolbar. Any of them can be moved either way.
 
 * Use the arrows to move a button up or down. The order is the same in every tab and is remembered.
 * Untick *Toolbar* to move any button, built-in or custom, into the **More** menu; tick it to bring it back.
 * A button that does not fit in a narrow window moves into **More** by itself, last buttons first, and keeps its order there.
-* **Separators** divide the toolbar into groups. The toolbar starts with one after Commit and one after Push. Click the separator
+* To bring a button out of **More**, open the menu and click **Show in toolbar** at the end of its row (or tick *Toolbar* in
+  this dialog). If the toolbar is already full, the button takes the place of the last one, which moves into **More**.
+* **Separators** divide the toolbar into groups. The toolbar starts with one after Commit, one after Push, and one between the two pairs of rarer actions in **More**. Click the separator
   button on a row to add a new separator after that button, move it with the arrows like any other item, or remove it with
   the trash icon. Separators take no room, and one that would end up at the edge of a group, or next to another separator,
   is not drawn. The More menu shows them too, so its buttons stay in the same groups.
@@ -210,6 +220,12 @@ Tag, and Sync subs when the repository has submodules) together with your custom
 * **Reset order** puts the buttons and separators back in their usual order, all in the toolbar. Custom buttons are kept.
 
 Each custom button also appears in the command palette as *Run: name*.
+
+**If a button does not run.** Treeline says why in a message: a name that is empty or too long, a link that does not start
+with `http://`, `https://` or `mailto:`, a `{branch}` used while no branch is checked out, a branch or folder name with a
+character that is unsafe inside a shell command (such as `"`, `%`, `$` or a backtick), or the settings file `buttons.json`
+being unreadable. A shell command that exits with an error shows its output in the message. On macOS and Linux the
+terminal-window kind needs a terminal program (Terminal on macOS; `x-terminal-emulator` on Linux).
 
 ---
 
@@ -380,7 +396,7 @@ everything into one uncommitted change.
 Use this when the same change must reach several branches, for example a bug fix that belongs in `release-1`, `release-2`,
 `release-3` and `release-4`. You do it once instead of four times, and you see the conflicts **before** anything changes.
 
-1. Toolbar **Merge to many** (or right-click a branch → *Merge this into multiple branches…*).
+1. **More → Merge into several branches…** (or right-click a branch → *Merge this into multiple branches…*).
 2. **Choose.** *Merge from* is the current branch unless you change it. Tick the branches that should receive it
    (**Select all** is there too), then **Next: check for conflicts**. Nothing has changed yet.
 3. **Review.** Treeline test-merges into every branch without touching your files and shows one result for each:
@@ -538,7 +554,7 @@ full output.
   editor.
 * Very large histories load 400 commits at a time; keep scrolling to load more.
 * Add `node_modules`, `dist` and build output to `.gitignore` so Git doesn't scan them.
-* **Fix once, release everywhere.** Put the fix on one branch, then use **Merge to many** to bring it to every release
+* **Fix once, release everywhere.** Put the fix on one branch, then use **Merge into several branches** (in **More**) to bring it to every release
   branch in one go, with the conflicts listed before anything changes.
 
 ---
