@@ -114,3 +114,20 @@ Knowingly accepted: a button runs with the user's own rights, as a terminal woul
 backend to create a button (the page is the only component that can, and it loads no remote content under the content
 policy above). By default a button shows its exact command and asks before it runs. The macOS and Linux
 terminal-window paths were written without those systems to test on; see `docs/CROSS_PLATFORM_TESTING.md`.
+
+## Addendum: built-in terminal (2026-11-11)
+
+A later feature, reviewed by its author when it was written (not part of the audit above, and not an independent review).
+It runs an interactive shell in a pseudo-terminal inside the window, so it adds a second way for the app to run programs.
+
+| Risk | Control | Test |
+|---|---|---|
+| The page starts a shell in any folder | `term_open` passes the folder through `ensure_allowed` and `require_existing_folder`, like every other command | By construction: the same two checks as `open_terminal` |
+| The page runs a program of its choosing | The backend picks the shell (`powershell.exe`, or `$SHELL` with `-l`); the page sends only a folder, a size and the text typed | Reviewed |
+| A repository changes what runs in the terminal | Nothing is read from a repository: the shell is the user's own, and starts in the folder like a terminal the user opened | By construction |
+| Shell output reaching the page as code | Output is written to the xterm view as terminal text, never as HTML; the content policy still forbids remote scripts and `eval` (xterm needs neither) | Checked against the policy in `tauri.conf.json` |
+| Shells left running after the window closes | Closing a terminal ends its shell, on a separate thread so a slow close cannot freeze the window; the pseudo-terminal ends with the app | Manual (item 38 of the cross-platform checklist) |
+| Output split inside a multi-byte character | The reader keeps the unfinished bytes for the next read instead of replacing them | Reviewed |
+
+Knowingly accepted: the shell runs with the user's own rights, as a terminal would, and anything typed into it (or pasted)
+runs. There is no limit on how many terminals can be opened, and terminals are not restored at the next start.

@@ -50,7 +50,7 @@ Tick each line as pass (✅), fail (❌) or skipped (➖). Note anything odd eve
     `+O` open, `+R` refresh, `Ctrl+Tab` next tab, `F1` or `Cmd/Ctrl+?` opens the guide.
 17. ☐ **macOS only:** `Cmd+C`, `Cmd+V`, `Cmd+A`, `Cmd+Z` work in the commit message box and text fields; the menu bar looks sensible;
     `Cmd+Q` quits.
-18. ☐ **More → Open in Terminal** opens a terminal in the repository folder; **More → Show in Explorer / Finder** opens the folder in your file manager.
+18. ☐ The small arrow next to the **Terminal** toolbar button, **Open in external terminal window**, opens your system terminal in the repository folder; **More → Show in Explorer / Finder** opens the folder in your file manager.
 19. ☐ The built-in guide (`F1`) opens in its own window and works with the network off.
 20. ☐ The theme follows your system's light/dark setting, and the ☀ button switches it.
 21. ☐ Looks right: fonts, spacing, icons, scrolling, on a high-DPI/Retina screen; the window resizes down to its minimum without breakage.
@@ -61,10 +61,21 @@ Tick each line as pass (✅), fail (❌) or skipped (➖). Note anything odd eve
 23. ☐ **Add** a *Shell command* button `echo hello` (save it for *This repository*): pressing it shows the command, then a panel with `hello`. Add a *Git command* button `status --short` and run it.
 24. ☐ **macOS / Linux:** a *Command in a terminal window* button (for example `git log --oneline -5`) opens Terminal (macOS) or the system terminal (Linux) in the repository folder, runs the command and leaves the window open. Note which terminal opened.
 25. ☐ A *Open a link* button `https://example.com/{branch}` opens your default browser; on a branch named `feature/x` the link ends `feature%2Fx`.
-26. ☐ **More → Customize toolbar…**: move a button up and down, untick *Toolbar* for one (it moves into **More**), add a separator, pick an icon for a custom button. In the **More** menu click **Show in toolbar** next to *Open in Terminal*: it appears in the toolbar and still works. Quit and start the app: the order, separators and icon are still there.
+26. ☐ **More → Customize toolbar…**: move a button up and down, untick *Toolbar* for one (it moves into **More**), add a separator, pick an icon for a custom button. In the **More** menu click **Show in toolbar** next to *Show in Explorer / Finder*: it appears in the toolbar and still works. Quit and start the app: the order, separators and icon are still there.
 27. ☐ **Dragging:** press and hold a toolbar button for about a third of a second, drag it to another place and release: it moves, and a plain click on any button still runs it. Drag one onto **More**: it leaves the toolbar. Right-click a button: the menu appears (on macOS also with `Ctrl`+click).
 28. ☐ A *Shell command* button that prints something (for example `echo hello`) shows a panel with the output and **Copy output**; one that fails (`exit 1`) shows *Failed*.
 29. ☐ Make the window narrow: buttons that do not fit move into **More** in the same order, and no separator is left dangling at an edge.
+
+**Built-in terminal** (written and compile-checked on Windows only; macOS and Linux are untested)
+30. ☐ The **Terminal** toolbar button (or `Ctrl/Cmd+``) opens a panel at the bottom with a shell in the repository folder (`pwd` or `cd` shows it). The shell is PowerShell on Windows, your login shell elsewhere. Typing works, including arrow keys, tab completion, `Ctrl+C`, accented and non-Latin characters, and colours (`git log --oneline --color=always`).
+31. ☐ Hide it with the button, then show it again: a running command (`ping` / `sleep 30`) kept running and the text is still there. Switch between History and Files and between tabs: the terminal stays in the same place.
+32. ☐ Drag the edge to resize it; double-click the edge: it goes back to the usual size. Quit and start: the size is remembered, but the terminal itself is empty.
+33. ☐ **+** adds a tab, **✕** on a tab ends that shell, closing the last tab hides the panel. Each tab shows its own folder on hover.
+34. ☐ **Divide** adds a piece beside the first; click each: the blue outline follows. **Move right** on one piece: it jumps to the right side, full height, and the other stays at the bottom; run a command in it first and check the text and the running command survive the move. **Move bottom** brings it back.
+35. ☐ Resize the window and each piece: the shell wraps to the new size (`stty size` on macOS / Linux, `$Host.UI.RawUI.WindowSize` in PowerShell).
+36. ☐ Type `exit`: the tab says the shell has ended; **Restart here** starts a new one. Switch to another repository tab and press **Restart here**: it opens in that repository.
+37. ☐ Switch the theme between light and dark with a terminal open: its colours follow. Open a repository whose folder path contains spaces and non-ASCII characters: the shell still starts there.
+38. ☐ Quit the app with a shell running: no shell or `conpty` / `pty` process is left behind (check Task Manager / `ps`).
 
 ## 2. Report what you found
 

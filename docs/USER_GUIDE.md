@@ -152,6 +152,8 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 │  • Stashes   │                                                                  │
 │  • Submodules│                                                                  │
 ├──────────────┴──────────────────────────────────────────────────────────────────┤
+│ Terminal (optional, hidden until you open it; can also sit on the right)         │
+├──────────────────────────────────────────────────────────────────────────────────┤
 │ Status bar: what the app is doing now · repository path                          │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -161,17 +163,46 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 * **Branch chip** `main ↑1 ↓2` – you are 1 commit ahead of and 2 commits behind the remote branch.
 * **Sync subs** appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers **Sync** (the same) and **Sync and pull** (switch, then pull each one).
 * **More** holds the less common actions: **Merge into several branches…** (merges one branch into several at once, with a
-  conflict check first; section 10), **Clean up merged branches…**, **Open in Terminal** and **Show in Explorer / Finder**,
+  conflict check first; section 10), **Clean up merged branches…** and **Show in Explorer / Finder**,
   plus any toolbar buttons that do not fit the window. They are ordinary toolbar buttons that start here: click **Show in
   toolbar** next to one to bring it out (see *Ordering the toolbar* below). **Add** makes a button of your own.
 * **Hover for hints.** The buttons in the conflict resolver (Use ours, Keep theirs, Mark resolved …) explain exactly what
   they do and name the branches involved.
 * **Right-click** almost anything (branches, tags, stashes, files, commits, submodules) for its actions.
-* **Drag the thin dividers** between panels to resize them; sizes are remembered.
+* **Drag the thin dividers** between panels to resize them, including the edge between the sidebar and the main area (160 to 600 pixels); sizes are remembered. Double-click a divider to go back to its usual size.
 * **Theme:** the ☀ button switches light/dark (or choose “follow system” in the command palette).
 * **Command palette** (`Ctrl+K`): type to find any action — Fetch, New branch, Check out *x*, Open bookmark *y*, Run *a custom button*…
 * **This guide is built into the app.** Press `F1` or click the **?** button at the top right. It opens in its own window and works offline. Error panels have a **Learn more** button that opens the
   page on fixing errors, and the command palette has shortcuts to the most useful pages.
+
+### The built-in terminal
+
+The **Terminal** toolbar button shows and hides a terminal inside the window (or press `Ctrl+``, `Cmd+`` on a Mac). It
+starts a shell in the folder of the repository you have open: PowerShell on Windows, your login shell on macOS and Linux. It
+is there for quick commands such as `git reflog`, without leaving Treeline.
+
+* **It stays put.** The terminal is not part of History or File status: it keeps its place and its contents when you switch
+  views or tabs. **Hiding it does not end anything**; a command that is running keeps running, and the text is still there
+  when you show it again. Terminals end when you close them or quit the app, and are not restored at the next start.
+* **Tabs.** Click **+** in a terminal's header to open another shell in a new tab, and the **✕** on a tab to end that shell.
+  A tab is named with its number and the folder it started in; hover it for the full path.
+* **Divide.** **Divide** adds a new piece next to this one (below it, when the pieces are on the right), each with its own
+  tabs, so you can watch a build in one and work in another. Click a piece to give it the keyboard; the one you are
+  typing in has a blue outline when there is more than one.
+* **Move a piece to the right (or back to the bottom).** **Move right** / **Move bottom** sends just that piece to the other
+  side of the window; the others stay where they are. Pieces at the bottom sit side by side; pieces on the right stack
+  from top to bottom. A moved piece keeps its shells running and its text.
+* **Resize.** Drag the edge of the terminal area (double-click it for the usual size). The bottom and the right each
+  remember their own size, and pieces on the same side share the room equally.
+* **Restart here** replaces the current tab's shell with a new one in the repository you have open now. A terminal starts in
+  the repository that was open when you made it and does not follow you when you switch tabs; use `cd`, or **Restart here**.
+  When a shell ends (you typed `exit`) the tab says so and waits.
+* **A real window instead.** The small arrow next to the **Terminal** button (and *Open an external terminal window here* in
+  the command palette) opens your system's terminal in the repository folder, as older versions of the button did.
+* `Ctrl+`` and `Ctrl+Tab` are handled by Treeline and are not sent to the shell.
+
+The shell runs with your own rights, exactly as a terminal you opened yourself, and only in a folder you have opened in
+Treeline.
 
 ### Custom buttons
 
@@ -204,8 +235,10 @@ running it* shows the exact command and waits for your **Run** (on by default).
 
 **More → Customize toolbar…** lists every toolbar button, the built-in ones (Commit, Fetch, Pull, Push, Branch, Merge, Stash,
 Tag, Merge to many, Clean up, Terminal, Explorer / Finder, and Sync subs when the repository has submodules) together with
-your custom ones, in the order the toolbar shows them. Merge to many, Clean up, Terminal and Explorer / Finder start in the
-**More** menu; every other built-in button starts in the toolbar. Any of them can be moved either way.
+your custom ones, in the order the toolbar shows them. Merge to many, Clean up and Explorer / Finder start in the
+**More** menu; every other built-in button, Terminal included, starts in the toolbar. Any of them can be moved either way.
+(If you saved your toolbar before the built-in terminal existed, Terminal is still in **More**: click **Show in toolbar**
+next to it.)
 
 * **Drag a button in the toolbar itself.** Press and hold it for a moment (the button shrinks slightly), then drag: a blue
   line shows where it will land. Drop it on **More** to put it in the menu instead. Press **Esc** to cancel. A quick click
@@ -280,6 +313,9 @@ fetched — use it after rewriting history (rebase/amend), never casually.
 
 Open **History** (sidebar).
 * Drag the left edge of the **Author**, **Date** or **Commit** column header to resize it (double-click to reset).
+* **Choose how dates look.** Right-click the **Date** column header: *Elapsed time* (`2 h ago`, then the day and month; the
+  default), *Date only* (`11 Jan 2026`), *Date and time* (`11 Jan 2026, 09:30`) or *Time and date* (`09:30, 11 Jan 2026`).
+  The choice applies to every repository and is remembered. Hover a date for the full date and time in any case.
 * Each row is a commit: graph lines on the left, then message, author, date, short ID. Coloured tags are branches
   (green), remote branches (purple), tags (amber) and where you are (blue = current branch).
 * The top row **Uncommitted changes** appears when you have local changes; click it to see the staged and unstaged changes in the panel below (read-only; use the Files view to stage and commit).
@@ -547,6 +583,7 @@ full output.
 | `Ctrl+T` / `Ctrl+W` | New tab / close tab |
 | `Ctrl+Tab` / `Ctrl+Shift+Tab` | Next / previous tab |
 | `Ctrl+R` | Refresh |
+| `Ctrl+`` | Show / hide the built-in terminal |
 | `Ctrl+Enter` (in the message box) | Commit |
 | `Enter` / `Esc` or × (in a dialog) | Confirm / cancel |
 | Double-click a file | Stage / unstage it |
