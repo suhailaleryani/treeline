@@ -353,16 +353,21 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
 
   return (
     <div className="commit-box">
-      <textarea
-        value={msg}
-        placeholder={amend ? "Amend the last commit message…" : `Commit message (${formatShortcut("Mod+Enter")} to commit)`}
-        aria-label="Commit message"
-        onChange={(e) => setUi(tab.id, { draft: e.target.value })}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && canCommit) void doCommit(false);
-        }}
-        rows={3}
-      />
+      <div className="msg-field">
+        <textarea
+          value={msg}
+          placeholder={amend ? "Amend the last commit message…" : `Commit message (${formatShortcut("Mod+Enter")} to commit)`}
+          aria-label="Commit message"
+          onChange={(e) => setUi(tab.id, { draft: e.target.value })}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && canCommit) void doCommit(false);
+          }}
+          rows={3}
+        />
+        <button className="icon-btn msg-toggle" aria-label="Earlier commit messages" aria-expanded={showMessages} title="Earlier commit messages: click one to use it" onClick={() => setShowMessages((v) => !v)}>
+          <Icon name="history" size={14} />
+        </button>
+      </div>
       {showMessages && (
         <div className="msg-list" role="list" aria-label="Earlier commit messages">
           {latest.length === 0 && <p className="muted small pad">No commits yet.</p>}
@@ -379,9 +384,6 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
         >
           {first.length}/72
         </span>
-        <button className="btn tiny" aria-expanded={showMessages} onClick={() => setShowMessages((v) => !v)} title="Reuse one of your latest or most used commit messages">
-          Messages
-        </button>
         <label className="check inline">
           <input type="checkbox" checked={amend} onChange={(e) => void toggleAmend(e.target.checked)} />
           Amend last commit
