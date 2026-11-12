@@ -17,3 +17,5 @@ The ten items requested later in November 2026 are built too: closing a terminal
 terminal ends its whole process tree, terminal scrolling fix, closing a tab returns to the previous tab, a tab right-click
 menu, submodule tabs grouped with their parent, clicking a branch selects its latest commit, recent and most-used commit
 messages, a clearer push dialog, and **Sync and bump pointers**. They are described in `docs/USER_GUIDE.md`.
+
+Also built: **open a file at a commit** (or just before it) from the file history.

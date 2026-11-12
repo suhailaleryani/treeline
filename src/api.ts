@@ -84,6 +84,7 @@ export const api = {
     invoke<string[]>("git_log_matches", { path, all, filter }),
   fileLog: (path: string, file: string, skip: number, limit: number) =>
     invoke<FileCommit[]>("file_log", { path, file, skip, limit }),
+  fileAt: (path: string, rev: string, file: string) => invoke<string>("git_file_at", { path, rev, file }),
   blame: (path: string, file: string, rev: string | null) => invoke<BlameLine[]>("git_blame", { path, file, rev }),
   refs: (path: string) => invoke<RefInfo[]>("list_refs", { path }),
   remotes: (path: string) => invoke<string[]>("list_remotes", { path }),
