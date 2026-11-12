@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { useApp } from "../store";
-import { useUi } from "../uiStore";
+import { openMenu, useUi, type MenuItem } from "../uiStore";
+import { repoActions } from "../actions";
 import { openGuide } from "../guide";
 import { Icon } from "./Icon";
 import { formatShortcut } from "../lib/shortcut";
@@ -63,6 +64,30 @@ export function TabBar() {
     window.addEventListener("pointercancel", end);
   };
 
+  /** Right-click on a tab: the repository actions of that tab, without switching to it first. */
+  const tabMenu = (e: ReactMouseEvent, id: string) => {
+    const tab = useApp.getState().tabs.find((t) => t.id === id);
+    const items: MenuItem[] = [];
+    if (tab?.path) {
+      const a = repoActions(id);
+      const d = useApp.getState().data[id];
+      const branch = d?.status?.branch ?? null;
+      const busy = !!d?.busy;
+      const hasSubs = (d?.submodules.length ?? 0) > 0;
+      items.push(
+        { label: "Fetch", disabled: busy, onClick: () => a.fetch() },
+        { label: "Pull", disabled: busy, onClick: () => a.pull("merge") },
+        { label: "Push…", disabled: busy, onClick: () => a.push() },
+        { separator: true },
+        { label: "Sync subs", disabled: busy || !hasSubs || !branch, onClick: () => branch && void a.switchSubmodules(branch) },
+        { label: "Sync and pull subs", disabled: busy || !hasSubs || !branch, onClick: () => branch && void a.switchSubmodules(branch, true) },
+        { separator: true },
+      );
+    }
+    items.push({ label: "Close tab", onClick: () => closeTab(id) });
+    openMenu(e, items);
+  };
+
   return (
     <div className="tabbar" role="tablist" ref={bar}>
       <div className="tabs" ref={scroller}>
@@ -81,6 +106,7 @@ export function TabBar() {
 ${t.path}` : "New tab"}
             onPointerDown={(e) => startDrag(e, t.id)}
             onClick={() => setActive(t.id)}
+            onContextMenu={(e) => tabMenu(e, t.id)}
             onAuxClick={(e) => e.button === 1 && closeTab(t.id)}
           >
             {t.path && <Icon name="branch" size={13} />}
