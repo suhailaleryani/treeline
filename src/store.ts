@@ -4,6 +4,7 @@ import { gitNeedsSecurityUpdate, outdatedGitMessage } from "./lib/gitVersion";
 import { forgetSections } from "./uiStore";
 import { noFilters, type HistoryFilters } from "./lib/historyFilter";
 import { checkForUpdate } from "./updater";
+import { noteActive, tabAfterClose } from "./lib/tabHistory";
 import { addRecent, type RecentRepo } from "./lib/recent";
 import { cleanPrefs, DEFAULT_TOOLBAR, type ToolbarPrefs } from "./lib/toolbarItems";
 import type {
@@ -134,6 +135,9 @@ const emptyRepo = (): RepoData => ({
   busy: null,
   ui: emptyUi(),
 });
+
+/** Tabs in the order they were active, so closing one returns to the previous one. */
+let activeHistory: string[] = [];
 
 interface AppState {
   ready: boolean;
@@ -280,7 +284,7 @@ export const useApp = create<AppState>((set, get) => {
       forgetSections(id);
       void api.forgetTabButtons(id).catch(() => undefined);
       const newActive =
-        activeId === id ? (next[Math.min(idx, next.length - 1)]?.id ?? null) : activeId;
+        activeId === id ? tabAfterClose(activeHistory, next.map((t) => t.id), id, idx) : activeId;
       set({ tabs: next, activeId: newActive, data });
       if (next.length === 0) get().newTab();
       else {
@@ -532,6 +536,10 @@ export const useApp = create<AppState>((set, get) => {
     closeDialog: () => set({ dialog: null }),
     setPalette: (paletteOpen) => set({ paletteOpen }),
   };
+});
+
+useApp.subscribe((s, prev) => {
+  if (s.activeId !== prev.activeId) activeHistory = noteActive(activeHistory, s.activeId);
 });
 
 // Persist tabs/bookmarks/theme (debounced) whenever they change.
