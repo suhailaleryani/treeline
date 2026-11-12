@@ -77,14 +77,21 @@ export function repoActions(tabId: string) {
       if (remotes.length === 0) return st().notify("error", "This repository has no remotes yet.");
       const hasUpstream = !!d?.status?.upstream;
       const track = parseTrack((d?.refs ?? []).find((r) => r.kind === "branch" && r.name === branch)?.track ?? null);
+      const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+      const upstream = d?.status?.upstream;
+      const summary = !hasUpstream
+        ? `${branch} has no upstream yet. Pushing creates it on the remote and (if ticked) makes this branch track it.`
+        : track.ahead > 0 && track.behind > 0
+          ? `This branch has diverged from ${upstream}: you have ${plural(track.ahead, "commit")} the server lacks and the server has ${plural(track.behind, "commit")} you lack. A normal push will be rejected. Pull first to combine them. Force push is only right if you rewrote history on purpose.`
+          : track.behind > 0
+            ? `The server has ${plural(track.behind, "commit")} you don't have. Pull first, then push.`
+            : track.ahead > 0
+              ? `Pushes ${plural(track.ahead, "commit")} on ${branch} to ${upstream}.`
+              : `${branch} is up to date with ${upstream}. There is nothing new to push (tags can still be pushed).`;
+      const locals = (d?.refs ?? []).filter((r) => r.kind === "branch").map((r) => r.name);
       st().openDialog({
-        title: "Push",
-        description:
-          track.ahead > 0 && track.behind > 0
-            ? `This branch has diverged: you have ${track.ahead} commit${track.ahead > 1 ? "s" : ""} the server lacks and the server has ${track.behind} you lack. A normal push will be rejected. Pull first to combine them. Force push is only right if you rewrote history on purpose.`
-            : track.behind > 0
-              ? `The server has ${track.behind} commit${track.behind > 1 ? "s" : ""} you don't have. Pull first, then push.`
-              : undefined,
+        title: `Push ${branch}`,
+        description: summary,
         fields: [
           {
             key: "remote",
@@ -93,8 +100,8 @@ export function repoActions(tabId: string) {
             value: d?.status?.upstream?.split("/")[0] ?? remotes[0],
             options: remotes.map((r) => ({ value: r, label: r })),
           },
-          { key: "branch", label: "Branch", type: "text", value: branch },
-          { key: "upstream", label: "Track this remote branch", type: "checkbox", value: !hasUpstream },
+          { key: "branch", label: "Branch to push", type: "select", value: branch, options: locals.map((n) => ({ value: n, label: n })) },
+          { key: "upstream", label: "Track this remote branch (set upstream)", type: "checkbox", value: !hasUpstream },
           { key: "tags", label: "Push all tags", type: "checkbox", value: false },
           { key: "force", label: "Force push (with lease)", type: "checkbox", value: false },
         ],
