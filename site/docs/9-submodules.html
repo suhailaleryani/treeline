@@ -45,6 +45,7 @@
 <main class="doc-main" id="main">
 <article class="prose">
 <h1>9. Submodules</h1>
+<p><img src="../assets/submodules.png" alt="A submodule open in its own tab to the right of its parent; both tabs share a coloured top edge."></p>
 <p>A submodule is another repository embedded inside this one (the sidebar&#39;s <strong>Submodules</strong> list).</p>
 <ul>
 <li>Dot colours: green = checked out at the expected commit · <strong>amber</strong> = it is at a <em>different</em> commit than the parent
@@ -68,9 +69,11 @@ switch. Nothing is forced.</li>
 <li>The parent then shows the submodules as changed (amber); commit that to record their new versions.</li>
 </ul>
 </li>
+<li><strong>Sync and bump pointers…</strong> (the arrow beside <strong>Sync subs</strong>, or right-click a tab) shows the branch this repository is on and a drop-down of branches (the current one by default). Choose another branch and the parent is checked out on it first, then the submodules follow, so both end up on the same branch; optionally pulls each, then commits the new submodule commits in the parent with a message you write (it suggests <em>submodule commit</em>). Only the submodule pointers are committed; other staged changes are left alone. Tick <strong>Push this repository afterwards</strong> to push the commit straight away (it uses the branch&#39;s remote, or the first remote if the branch has none).</li>
 <li>After you commit inside a submodule, the <strong>parent</strong> shows the submodule as changed (it now points to a new commit).
 Stage and commit that in the parent to record the new version.</li>
 </ul>
+<p><img src="../assets/bump-pointers.png" alt="The Sync and bump pointers dialog: the branch for the repository and its submodules, the commit message, and the options to pull first and to push afterwards."></p>
 
 </article>
 

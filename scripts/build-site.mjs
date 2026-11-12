@@ -61,6 +61,8 @@ const fixLinks = (text) =>
 
 const render = (source) => {
   let html = marked.parse(fixLinks(source), { gfm: true, breaks: false });
+  // the guide is written for GitHub (../site/assets/x.png); on the site and in the app the assets sit next to docs/
+  html = html.replace(/src="[.][.][/]site[/]assets[/]/g, 'src="../assets/');
   // anchors on headings
   html = html.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (m, lvl, inner) => `<h${lvl} id="${slugify(inner)}">${inner}</h${lvl}>`);
   // wide tables scroll instead of overflowing the page

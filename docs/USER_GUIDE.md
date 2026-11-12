@@ -126,6 +126,8 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 
 ## 3. Tabs and bookmarks
 
+![Right-clicking a tab opens a menu: Fetch, Pull, Push, Open submodules, Sync subs, Sync and pull subs, Sync and bump pointers and Close tab. The tabs of a repository and its submodules share a coloured top edge.](../site/assets/tab-menu.png)
+
 * Each repository opens in its own **tab**. Switching tabs is instant; only the tab you are looking at is refreshed.
 * `Ctrl+T` new tab · `Ctrl+W` close tab · `Ctrl+Tab` / `Ctrl+Shift+Tab` next / previous · middle-click a tab to close it.
 * Your open tabs are **restored** next time you start the app.
@@ -141,6 +143,8 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 ---
 
 ## 4. A tour of the window
+
+![The history view with a commit selected: the repository name and branch, the toolbar, the sidebar, the commit graph and the details of the selected commit.](../site/assets/history-detail.png)
 
 ```
 ┌ Tabs ─────────────────────────────────────────────────────  ⌘ palette · ☀ theme ┐
@@ -174,11 +178,17 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 * **Right-click** almost anything (branches, tags, stashes, files, commits, submodules) for its actions.
 * **Drag the thin dividers** between panels to resize them, including the edge between the sidebar and the main area (160 to 600 pixels); sizes are remembered. Double-click a divider to go back to its usual size.
 * **Theme:** the ☀ button switches light/dark (or choose “follow system” in the command palette).
+* The light theme has tinted panels and clear borders, so the layers stay easy to tell apart:
+
+  ![The history view in the light theme.](../site/assets/light.png)
+
 * **Command palette** (`Ctrl+K`): type to find any action — Fetch, New branch, Check out *x*, Open bookmark *y*, Run *a custom button*…
 * **This guide is built into the app.** Press `F1` or click the **?** button at the top right. It opens in its own window and works offline. Error panels have a **Learn more** button that opens the
   page on fixing errors, and the command palette has shortcuts to the most useful pages.
 
 ### The built-in terminal
+
+![The built-in terminal docked below the history view, running git log.](../site/assets/terminal.png)
 
 The **Terminal** toolbar button shows and hides a terminal inside the window (or press `Ctrl+``, `Cmd+`` on a Mac). It
 starts a shell in the folder of the repository you have open: PowerShell on Windows, your login shell on macOS and Linux. It
@@ -289,6 +299,9 @@ Click a file to see its changes on the right. Colours: green = added, red = remo
 Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untracked, **!** conflict.
 
 ### 5.2 Stage and unstage
+
+![A diff with three added lines ticked and a highlighted Stage 3 lines button in the hunk header.](../site/assets/line-staging.png)
+
 * Click **+** next to a file to stage it (or **×** to unstage). Double-click a row for the same effect.
 * **Stage all / Unstage all** buttons are in each section header.
 * **Stage only part of a file:** with the file open in the diff,
@@ -300,6 +313,9 @@ Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untrack
   undone**; the app asks first.
 
 ### 5.3 Commit
+
+![The commit message box with its history list open, showing the latest commit messages of the repository.](../site/assets/commit-messages.png)
+
 1. Write a message in the box under the lists. Aim for a short first line (the counter turns amber past 72 characters).
 2. Press **Commit** or `Ctrl+Enter`.
 * **Amend last commit** – tick the box to rewrite the previous commit with the currently staged changes and/or a new
@@ -308,6 +324,9 @@ Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untrack
 * **Commit & push…** commits, then opens the Push dialog.
 
 ### 5.4 Push your work
+
+![The Push dialog: it says that four commits on develop go to origin/develop, with a remote, a branch to push, and options for upstream, tags and force with lease.](../site/assets/push-dialog.png)
+
 Press **Push**. The dialog says what is about to happen (how many commits go to which branch, or that the branch has no upstream yet, or that you need to pull first) and lets you choose the remote and the branch from a list. Tick **Track this remote branch** the first time you push
 a new branch. **Force push (with lease)** overwrites the remote branch only if nobody else has pushed since you last
 fetched — use it after rewriting history (rebase/amend), never casually.
@@ -315,6 +334,8 @@ fetched — use it after rewriting history (rebase/amend), never casually.
 ---
 
 ## 6. History and the commit graph
+
+![The history with the branch feature/search highlighted, the rest of the graph dimmed, and the details of the branch's latest commit below.](../site/assets/history-highlight.png)
 
 Open **History** (sidebar).
 * Drag the left edge of the **Author**, **Date** or **Commit** column header to resize it (double-click to reset).
@@ -352,6 +373,9 @@ Open **History** (sidebar).
   **File history…**. You see every commit that changed that file, even before it was renamed, and the change each one
   made.
 * **Open the file at a commit:** in the file history, pick a commit and use **File at this commit** to see the whole file as it was right after that commit, or **File before it** for the version just before it (under its old name if it was renamed). **Changes** goes back to the diff. Binary files cannot be shown as text, and a file over 1 MB is cut off.
+
+  ![The file history dialog showing the whole file as it was at the selected commit, with line numbers.](../site/assets/file-at-commit.png)
+
 * **Who changed each line (Blame):** right-click a file and choose **Blame…**, or switch to the **Blame** tab in the file
   history window. Each line shows who last changed it, when, and in which commit; click that name to jump to the
   commit in the file's history. From a commit's file list, **Blame at this commit…** shows the file as it was then.
@@ -414,6 +438,8 @@ remote branches deleted on the server disappear.
 
 ## 9. Submodules
 
+![A submodule open in its own tab to the right of its parent; both tabs share a coloured top edge.](../site/assets/submodules.png)
+
 A submodule is another repository embedded inside this one (the sidebar's **Submodules** list).
 * Dot colours: green = checked out at the expected commit · **amber** = it is at a *different* commit than the parent
   expects · grey = not downloaded yet · red = in conflict.
@@ -437,6 +463,9 @@ A submodule is another repository embedded inside this one (the sidebar's **Subm
 * **Sync and bump pointers…** (the arrow beside **Sync subs**, or right-click a tab) shows the branch this repository is on and a drop-down of branches (the current one by default). Choose another branch and the parent is checked out on it first, then the submodules follow, so both end up on the same branch; optionally pulls each, then commits the new submodule commits in the parent with a message you write (it suggests *submodule commit*). Only the submodule pointers are committed; other staged changes are left alone. Tick **Push this repository afterwards** to push the commit straight away (it uses the branch's remote, or the first remote if the branch has none).
 * After you commit inside a submodule, the **parent** shows the submodule as changed (it now points to a new commit).
   Stage and commit that in the parent to record the new version.
+
+![The Sync and bump pointers dialog: the branch for the repository and its submodules, the commit message, and the options to pull first and to push afterwards.](../site/assets/bump-pointers.png)
+
 
 ---
 
@@ -486,12 +515,18 @@ Right-click a branch → *Rebase current onto this…* replays your commits on t
 Only rebase commits you haven't shared.
 
 ### Interactive rebase (tidy up recent commits)
+
+![The interactive rebase dialog listing three commits, each with a Pick, Reword, Edit, Squash, Fixup or Drop selector.](../site/assets/rebase.png)
+
 Right-click a commit in History → **Interactive rebase from here…**. For each commit choose **Pick**, **Reword** (edit the
 message), **Edit** (pause to amend it), **Squash** (merge into the one before, combining messages), **Fixup** (merge,
 discarding its message) or **Drop**. Use the arrows to reorder (newest on top). Uncommitted changes are stashed and restored
 automatically. Merge commits aren't listed (a rebase flattens them).
 
 ### Conflicts
+
+![The conflict resolver with the ours and theirs versions of a conflicting line and an editable result.](../site/assets/conflicts.png)
+
 A conflict means both sides changed the same lines. The operation **pauses** — nothing is lost.
 1. A yellow banner (“Merge in progress …”) appears in File status; conflicted files are listed under **Conflicts**.
 2. Click a conflicted file. For each conflict choose **Use ours**, **Use theirs**, **Both** or **Both (reversed)** — or edit
@@ -543,6 +578,10 @@ Stash saves your uncommitted changes and gives you a clean working tree — hand
 ---
 
 ## 13. When something goes wrong
+
+![An error panel titled The remote has commits you do not have, with numbered fixes and buttons Pull, Pull (rebase) and Force push (with lease).](../site/assets/errors.png)
+
+![The confirmation that appears before a force push, explaining what will be removed from the server.](../site/assets/force-confirm.png)
 
 Whenever an operation fails, the app shows a red panel with:
 1. a plain-language **title** and explanation of *why* it happened,
