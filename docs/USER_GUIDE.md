@@ -434,7 +434,7 @@ A submodule is another repository embedded inside this one (the sidebar's **Subm
     switch. Nothing is forced.
   * Treeline does not fetch first. If the branch exists only on the server, **Fetch** inside that submodule.
   * The parent then shows the submodules as changed (amber); commit that to record their new versions.
-* **Sync and bump pointers…** (the arrow beside **Sync subs**, or right-click a tab) shows the branch this repository is on and a drop-down of branches to switch the submodules to (the current one by default), optionally pulls each, then commits the new submodule commits in the parent with a message you write (it suggests *submodule commit*). Only the submodule pointers are committed; other staged changes are left alone. Tick **Push this repository afterwards** to push the commit straight away (it uses the branch's remote, or the first remote if the branch has none).
+* **Sync and bump pointers…** (the arrow beside **Sync subs**, or right-click a tab) shows the branch this repository is on and a drop-down of branches (the current one by default). Choose another branch and the parent is checked out on it first, then the submodules follow, so both end up on the same branch; optionally pulls each, then commits the new submodule commits in the parent with a message you write (it suggests *submodule commit*). Only the submodule pointers are committed; other staged changes are left alone. Tick **Push this repository afterwards** to push the commit straight away (it uses the branch's remote, or the first remote if the branch has none).
 * After you commit inside a submodule, the **parent** shows the submodule as changed (it now points to a new commit).
   Stage and commit that in the parent to record the new version.
 
