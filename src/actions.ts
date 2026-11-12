@@ -215,15 +215,16 @@ export function repoActions(tabId: string) {
       if (!branch) return st().notify("error", "Check out a branch first: the submodules follow the branch this repository is on.");
       st().openDialog({
         title: "Sync submodules and bump pointers",
-        description: `Switches every submodule to ${branch} (where that branch exists), then commits the new submodule commits in this repository. Other staged changes are not part of that commit.`,
+        description: `This repository is on ${branch}. Switches every submodule to the branch below (where it exists), then commits the new submodule commits in this repository, on ${branch}. Other staged changes are not part of that commit.`,
         fields: [
+          { key: "target", label: "Switch submodules to", type: "select", value: branch, options: localBranches().map((n) => ({ value: n, label: n === branch ? `${n} (current)` : n })) },
           { key: "message", label: "Commit message", type: "text", value: "submodule commit" },
           { key: "pull", label: "Pull each submodule first (fast-forward only)", type: "checkbox", value: true },
           { key: "push", label: "Push this repository afterwards", type: "checkbox", value: false },
         ],
         submitLabel: "Sync and commit",
         onSubmit: async (v) => {
-          const ok = await run("Switching submodules…", () => api.switchSubmodulesBranch(path(), branch, !!v.pull), { quiet: false, success: undefined });
+          const ok = await run("Switching submodules…", () => api.switchSubmodulesBranch(path(), String(v.target || branch), !!v.pull), { quiet: false, success: undefined });
           if (!ok) return;
           const committed = await run("Committing submodule pointers…", () => api.bumpSubmodulePointers(path(), String(v.message)), { quiet: false, success: undefined });
           if (!committed || !v.push) return;
