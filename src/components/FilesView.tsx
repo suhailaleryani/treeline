@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { api, errorMessage } from "../api";
 import { repoActions } from "../actions";
 import { useSplit } from "../hooks";
@@ -6,7 +6,8 @@ import { splitPath } from "../lib/format";
 import { formatShortcut } from "../lib/shortcut";
 import { useApp } from "../store";
 import type { FileSel } from "../store";
-import { openMenu, useUi } from "../uiStore";
+import { openMenu, useUi, type MenuItem } from "../uiStore";
+import { latestMessages, loadMessages, mostUsedMessages, recordMessage, saveMessages } from "../lib/commitMessages";
 import type { FileChange, Tab } from "../types";
 import { ConflictResolver } from "./ConflictResolver";
 import { DiffView, type PatchKind } from "./DiffView";
@@ -314,6 +315,7 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
   const doCommit = async (push: boolean) => {
     const ok = await run(tab.id, "Committing…", () => api.commit(path, msg, amend), { success: amend ? "Commit amended" : "Committed" });
     if (ok) {
+      saveMessages(recordMessage(loadMessages(), msg));
       setUi(tab.id, { draft: "", amend: false });
       if (push) a.push();
     }
@@ -325,6 +327,23 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
       const m = await api.headMessage(path).catch(() => "");
       setUi(tab.id, { amend: true, draft: m });
     }
+  };
+
+  /** Offers the latest and the most used commit messages; picking one fills the box. */
+  const pickMessage = (e: ReactMouseEvent) => {
+    const all = loadMessages();
+    const item = (m: { message: string; count: number }): MenuItem => ({
+      label: m.message.split(/\r?\n/)[0].slice(0, 70),
+      hint: m.count > 1 ? `x${m.count}` : undefined,
+      onClick: () => setUi(tab.id, { draft: m.message }),
+    });
+    const latest = latestMessages(all).map(item);
+    const top = mostUsedMessages(all).map(item);
+    const items: MenuItem[] = [];
+    if (latest.length) items.push({ label: "Latest", disabled: true }, ...latest);
+    if (top.length) items.push({ separator: true }, { label: "Most used", disabled: true }, ...top);
+    if (!items.length) items.push({ label: "No commit messages yet", disabled: true });
+    openMenu(e, items);
   };
 
   return (
@@ -346,6 +365,9 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
         >
           {first.length}/72
         </span>
+        <button className="btn tiny" onClick={pickMessage} title="Reuse one of your latest or most used commit messages">
+          Messages
+        </button>
         <label className="check inline">
           <input type="checkbox" checked={amend} onChange={(e) => void toggleAmend(e.target.checked)} />
           Amend last commit
