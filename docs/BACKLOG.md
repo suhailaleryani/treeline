@@ -13,7 +13,7 @@ The five items requested in November 2026 are built: history filters (author, co
 drop-down with **Sync and pull**, tab bar scrolling and narrower tabs, double-click a commit to check it out, and
 sidebar sections collapsed by default and remembered per tab. They are described in `docs/USER_GUIDE.md`.
 
-The twelve items requested later in November 2026 are built too: closing a terminal group closes just that group, closing a
+The ten items requested later in November 2026 are built too: closing a terminal group closes just that group, closing a
 terminal ends its whole process tree, terminal scrolling fix, closing a tab returns to the previous tab, a tab right-click
 menu, submodule tabs grouped with their parent, clicking a branch selects its latest commit, recent and most-used commit
 messages, a clearer push dialog, and **Sync and bump pointers**. They are described in `docs/USER_GUIDE.md`.
