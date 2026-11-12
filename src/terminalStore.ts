@@ -70,6 +70,16 @@ export function closeTab(groupId: number, tabId: number) {
   if (groups.length === 0) useUi.setState({ terminalOpen: false });
 }
 
+/** Closes a whole group: ends every shell in it and removes it. The other groups stay; the panel hides when none are left. */
+export function closeGroup(groupId: number) {
+  const g = useTerminals.getState().groups.find((x) => x.id === groupId);
+  if (!g) return;
+  for (const t of g.tabs) disposeTerminal(t.id);
+  const groups = useTerminals.getState().groups.filter((x) => x.id !== groupId);
+  set((s) => ({ groups, focusedGroup: s.focusedGroup === groupId ? (groups[0]?.id ?? null) : s.focusedGroup }));
+  if (groups.length === 0) useUi.setState({ terminalOpen: false });
+}
+
 /** Moves a group to the other dock. Its shells keep running. */
 export function moveGroup(groupId: number, dock: Dock) {
   patchGroup(groupId, (g) => ({ ...g, dock }));

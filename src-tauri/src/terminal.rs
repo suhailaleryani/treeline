@@ -117,9 +117,30 @@ pub async fn term_close(state: State<'_, TerminalState>, id: u32) -> Result<(), 
         // Ending the shell and closing the pseudo-console can block (on Windows it waits for the reader to drain),
         // so it happens on its own thread and never holds up the window.
         std::thread::spawn(move || {
-            let _ = s.child.kill();
+            kill_tree(&mut s);
             drop(s);
         });
     }
     Ok(())
+}
+
+/// Kills the shell and everything it started (a dev server, a watcher), so nothing is left running after the
+/// terminal is closed. Killing only the shell would leave its children alive.
+fn kill_tree(s: &mut Session) {
+    if let Some(pid) = s.child.process_id() {
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            let _ = std::process::Command::new("taskkill")
+                .args(["/PID", &pid.to_string(), "/T", "/F"])
+                .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+                .status();
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            // The shell leads its own session, so signalling its process group reaches its children too.
+            let _ = std::process::Command::new("kill").args(["-HUP", &format!("-{pid}")]).status();
+        }
+    }
+    let _ = s.child.kill();
 }
