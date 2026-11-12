@@ -133,8 +133,11 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
 
   const view = d?.ui.view ?? "files";
   const focusRef = d?.ui.focusRef ?? null;
-  /** Single click: show the history and highlight everything reachable from this ref. */
-  const focus = (name: string) => setUi(tab.id, { view: "history", focusRef: name });
+  /** Single click: show the history, highlight everything reachable from this ref, and select its latest commit. */
+  const focus = (name: string) => {
+    const tip = d?.refs.find((r) => r.name === name)?.sha;
+    setUi(tab.id, { view: "history", focusRef: name, ...(tip ? { selCommit: tip, compareCommit: null } : {}) });
+  };
   const changes = d?.status?.files.length ?? 0;
   const current = d?.status?.branch ?? null;
 
