@@ -840,6 +840,17 @@ pub(crate) fn risky_config_entry(key: &str, value: &str) -> Option<String> {
     None
 }
 
+/// True when a `core.worktree` value (relative to the git folder, as git reads it) names the folder being opened.
+fn worktree_is_this_folder(folder: &str, value: &str) -> bool {
+    let Ok(git_dir) = run_git(folder, ["rev-parse", "--absolute-git-dir"]) else { return false };
+    let git_dir = PathBuf::from(git_dir.trim());
+    let target = if Path::new(value).is_absolute() { PathBuf::from(value) } else { git_dir.join(value) };
+    match (std::fs::canonicalize(target), std::fs::canonicalize(folder)) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => false,
+    }
+}
+
 /// What in this repository's own settings or hooks could make git run a program when the app (or
 /// you) commits, merges, checks out or fetches. A repository you made or cloned from a source you
 /// trust normally has none of this; a folder handed to you with its `.git` included can.
@@ -856,6 +867,11 @@ pub(crate) fn repo_risks_now(path: &str) -> Result<Vec<String>, String> {
             continue;
         }
         let (key, value) = entry.split_once('\n').unwrap_or((entry, ""));
+        // Git itself writes `core.worktree` into a submodule's own settings, pointing back at the submodule's
+        // folder. That is the normal layout, not a repository pointing somewhere else.
+        if key.eq_ignore_ascii_case("core.worktree") && worktree_is_this_folder(path, value) {
+            continue;
+        }
         if let Some(line) = risky_config_entry(key, value) {
             out.push(line);
         }
@@ -1291,6 +1307,38 @@ mod tests {
         git(&["status", "-s"]);
         assert!(!marker.exists(), "the hook must not run when it comes from an included file");
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_submodules_own_worktree_setting_is_not_a_risk() {
+        let base = std::env::temp_dir().join(format!("treeline-subwt-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        let sub_src = base.join("sub-src");
+        let parent = base.join("parent");
+        std::fs::create_dir_all(&sub_src).unwrap();
+        std::fs::create_dir_all(&parent).unwrap();
+        let s = |p: &Path| p.to_string_lossy().into_owned();
+        let git = |dir: &Path, args: &[&str]| {
+            let out = std::process::Command::new("git")
+                .args(["-c", "protocol.file.allow=always", "-c", "user.name=t", "-c", "user.email=t@example.com"])
+                .args(args)
+                .current_dir(dir)
+                .output()
+                .unwrap();
+            assert!(out.status.success(), "{args:?}: {}", String::from_utf8_lossy(&out.stderr));
+        };
+        git(&sub_src, &["init", "-q"]);
+        git(&sub_src, &["commit", "-q", "--allow-empty", "-m", "x"]);
+        git(&parent, &["init", "-q"]);
+        git(&parent, &["submodule", "add", "-q", &s(&sub_src), "libs/inner"]);
+        let inner = parent.join("libs").join("inner");
+        let risks = repo_risks_now(&s(&inner)).unwrap();
+        assert!(risks.iter().all(|r| !r.contains("core.worktree")), "the layout git itself makes: {risks:?}");
+        // A worktree setting that points elsewhere is still reported.
+        run_git(&s(&inner), ["config", "core.worktree", &s(&base)]).unwrap();
+        let risks = repo_risks_now(&s(&inner)).unwrap();
+        assert!(risks.iter().any(|r| r.contains("core.worktree")), "elsewhere is still a risk: {risks:?}");
+        let _ = std::fs::remove_dir_all(&base);
     }
 
     #[test]
