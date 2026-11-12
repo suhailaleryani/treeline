@@ -131,6 +131,9 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 * Your open tabs are **restored** next time you start the app.
 * **Drag a tab** left or right to put your tabs in the order you like; the order is remembered. Each tab also remembers which sidebar sections (Branches, Remotes, Tags, Stashes, Submodules) you opened or closed. A repository starts with **every sidebar section collapsed**; open the ones you need and the tab keeps them open, also after a restart.
 * **Many tabs:** tabs get narrower as you open more (hover a tab for its full name and folder). When they no longer fit, turn the **mouse wheel** over the tab bar to scroll sideways. The selected tab is always scrolled into view.
+* **Closing a tab** returns you to the tab you were on before, not the next one along. Open a submodule, close it, and you are back on the repository you came from.
+* **Right-click a tab** for that repository's actions without switching to it: **Fetch**, **Pull**, **Push…**, **Sync subs**, **Sync and pull subs**, **Sync and bump pointers…** and **Close tab**.
+* **Submodule tabs stay with their parent.** A submodule you open sits to the right of its parent's tab, and the group shares a coloured top edge. A submodule tab can only be dragged within its group; dragging the parent moves the whole group, and a repository cannot be dropped in the middle of another group. If you close the parent, its submodule tabs stay open as ordinary tabs.
 * A small orange dot on a tab means that repository has uncommitted changes.
 * **Bookmarks:** click the ☆ next to the repository name to bookmark it (★ = bookmarked). Remove it by clicking ★ again,
   or the ✕ on the bookmark card.
@@ -182,9 +185,9 @@ starts a shell in the folder of the repository you have open: PowerShell on Wind
 is there for quick commands such as `git reflog`, without leaving Treeline.
 
 * **It stays put.** The terminal is not part of History or File status: it keeps its place and its contents when you switch
-  views or tabs. **Hiding it does not end anything**; a command that is running keeps running, and the text is still there
-  when you show it again. Terminals end when you close them or quit the app, and are not restored at the next start.
-* **Tabs.** Click **+** in a terminal's header to open another shell in a new tab, and the **✕** on a tab to end that shell.
+  views or tabs. **Hiding it (the Terminal button) does not end anything**; a command that is running keeps running, and the text is still there
+  when you show it again. **Closing** a terminal does end it: the shell and everything it started (a dev server, a watcher) are stopped. Terminals are not restored at the next start.
+* **Tabs.** Click **+** in a terminal's header to open another shell in a new tab, and the **✕** on a tab to end that shell and everything running in it.
   A tab is named with its number and the folder it started in; hover it for the full path.
 * **Divide.** **Divide** adds a new piece next to this one (below it, when the pieces are on the right), each with its own
   tabs, so you can watch a build in one and work in another. Click a piece to give it the keyboard; the one you are
@@ -192,6 +195,7 @@ is there for quick commands such as `git reflog`, without leaving Treeline.
 * **Move a piece to the right (or back to the bottom).** **Move right** / **Move bottom** sends just that piece to the other
   side of the window; the others stay where they are. Pieces at the bottom sit side by side; pieces on the right stack
   from top to bottom. A moved piece keeps its shells running and its text.
+* **Close a piece.** The **✕** at the end of a piece's header closes that piece and ends all its terminals; the other pieces stay. The terminal area hides once the last piece is closed.
 * **Resize.** Drag the edge of the terminal area (double-click it for the usual size). The bottom and the right each
   remember their own size, and pieces on the same side share the room equally.
 * **Restart here** replaces the current tab's shell with a new one in the repository you have open now. A terminal starts in
@@ -300,10 +304,11 @@ Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untrack
 2. Press **Commit** or `Ctrl+Enter`.
 * **Amend last commit** – tick the box to rewrite the previous commit with the currently staged changes and/or a new
   message. Don't amend a commit you've already pushed and shared.
+* **Messages** (next to the length counter) lists your latest and your most used commit messages; pick one to fill the box.
 * **Commit & push…** commits, then opens the Push dialog.
 
 ### 5.4 Push your work
-Press **Push**. The dialog lets you choose the remote and branch. Tick **Track this remote branch** the first time you push
+Press **Push**. The dialog says what is about to happen (how many commits go to which branch, or that the branch has no upstream yet, or that you need to pull first) and lets you choose the remote and the branch from a list. Tick **Track this remote branch** the first time you push
 a new branch. **Force push (with lease)** overwrites the remote branch only if nobody else has pushed since you last
 fetched — use it after rewriting history (rebase/amend), never casually.
 
@@ -334,7 +339,7 @@ Open **History** (sidebar).
 * **Double-click a commit** to check it out: its branch when it has one (a short list if several), the local copy of a
   remote branch when only that exists, otherwise the commit itself as a detached HEAD, after a confirmation. Uncommitted
   changes that would be overwritten stop the checkout with the usual explanation; nothing is discarded.
-* **Highlight a branch:** click a branch, remote branch or tag in the sidebar — the graph scrolls to its tip and
+* **Highlight a branch:** click a branch, remote branch or tag in the sidebar — the graph scrolls to its tip, **selects its latest commit** (its details open on the right) and
   highlights every commit reachable from it; everything else is dimmed. Click the **✕** on the “Highlighting …” chip to
   clear it.
 * **Right-click a commit** for: copy ID, check out, new branch/tag here, cherry-pick, revert, merge into current, reset the
@@ -428,6 +433,7 @@ A submodule is another repository embedded inside this one (the sidebar's **Subm
     switch. Nothing is forced.
   * Treeline does not fetch first. If the branch exists only on the server, **Fetch** inside that submodule.
   * The parent then shows the submodules as changed (amber); commit that to record their new versions.
+* **Sync and bump pointers…** (the arrow beside **Sync subs**, or right-click a tab) switches the submodules to the parent's branch, optionally pulls each, then commits the new submodule commits in the parent with a message you write (it suggests *Bump submodules to <branch>*). Only the submodule pointers are committed; other staged changes are left alone.
 * After you commit inside a submodule, the **parent** shows the submodule as changed (it now points to a new commit).
   Stage and commit that in the parent to record the new version.
 
