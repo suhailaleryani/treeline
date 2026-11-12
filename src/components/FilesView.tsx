@@ -364,7 +364,11 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
           }}
           rows={3}
         />
-        <button className="icon-btn msg-toggle" aria-label="Earlier commit messages" aria-expanded={showMessages} title="Earlier commit messages: click one to use it" onClick={() => setShowMessages((v) => !v)}>
+        <button className="icon-btn msg-toggle" aria-label="Earlier commit messages" aria-expanded={showMessages} title="Earlier commit messages: click one to use it" onClick={() => {
+            // The repository's latest commits come from the history, which is only loaded once History was opened.
+            if (!showMessages && !d?.log.length && !d?.logLoading) void useApp.getState().loadLog(tab.id, true);
+            setShowMessages((v) => !v);
+          }}>
           <Icon name="history" size={14} />
         </button>
       </div>
