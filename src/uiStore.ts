@@ -17,7 +17,8 @@ export interface MenuItem {
 
 const SECTIONS_KEY = "sidebar-sections";
 
-/** Which sidebar sections the user has opened or closed, per tab (tab id → section key → open). */
+/** Which sidebar sections the user has opened or closed, per repository (folder → section key → open). */
+const SECTIONS_MAX = 300;
 type TabSections = Record<string, Record<string, boolean>>;
 
 function loadSections(): TabSections {
@@ -109,12 +110,8 @@ function saveSections(sections: TabSections) {
 
 /** Remembers that the user opened or closed a sidebar section in this tab. */
 export function setSectionOpen(tabId: string, key: string, open: boolean) {
-  const all = useUi.getState().sections;
-  saveSections({ ...all, [tabId]: { ...all[tabId], [key]: open } });
-}
-
-/** Drops a closed tab's remembered sections. */
-export function forgetSections(tabId: string) {
-  const { [tabId]: _gone, ...rest } = useUi.getState().sections;
-  if (_gone) saveSections(rest);
+  const { [tabId]: mine, ...others } = useUi.getState().sections;
+  // The most recently changed repository goes last, and only the newest SECTIONS_MAX are kept.
+  const kept = Object.entries({ ...others, [tabId]: { ...mine, [key]: open } }).slice(-SECTIONS_MAX);
+  saveSections(Object.fromEntries(kept));
 }

@@ -11,8 +11,8 @@ import { Icon } from "./Icon";
 const FilteringContext = createContext(false);
 
 /**
- * Open/closed state of a sidebar section: the user's own choice in this tab (each tab keeps its
- * own layout), else the given default.
+ * Open/closed state of a sidebar section: the user's own choice for this repository (kept after the tab is
+ * closed and the repository opened again), else the given default. `tabId` is the repository folder.
  */
 function useSection(tabId: string, key: string, fallback: boolean) {
   const stored = useUi((s) => s.sections[tabId]?.[key]);
@@ -131,6 +131,8 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refs, f]);
 
+  // The layout belongs to the repository, not to the tab: closing a tab and opening the folder again keeps it.
+  const layoutKey = tab.path ?? tab.id;
   const view = d?.ui.view ?? "files";
   const focusRef = d?.ui.focusRef ?? null;
   /** Single click: show the history, highlight everything reachable from this ref, and select its latest commit. */
@@ -159,8 +161,8 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
           </button>
         </div>
 
-        <Section tabId={tab.id} title="Branches" count={branches.length}>
-          <RefTree tabId={tab.id} scope="branch" folder={branchTree} base={10} renderItem={(b, label, pad) => {
+        <Section tabId={layoutKey} title="Branches" count={branches.length}>
+          <RefTree tabId={layoutKey} scope="branch" folder={branchTree} base={10} renderItem={(b, label, pad) => {
             const t = parseTrack(b.track);
             const isCurrent = b.head;
             return (
@@ -208,10 +210,10 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
           {branches.length === 0 && <p className="muted small pad">No branches.</p>}
         </Section>
 
-        <Section tabId={tab.id} title="Remotes" count={remoteGroups.length}>
+        <Section tabId={layoutKey} title="Remotes" count={remoteGroups.length}>
           {remoteGroups.map(({ remote, count, tree }) => (
-            <RemoteGroup tabId={tab.id} key={remote} remote={remote} count={count}>
-              <RefTree tabId={tab.id} scope={`remote:${remote}`} folder={tree} base={10 + INDENT} renderItem={(r, label, pad) => (
+            <RemoteGroup tabId={layoutKey} key={remote} remote={remote} count={count}>
+              <RefTree tabId={layoutKey} scope={`remote:${remote}`} folder={tree} base={10 + INDENT} renderItem={(r, label, pad) => (
                 <button
                   key={r.name}
                   style={{ paddingLeft: pad }}
@@ -238,8 +240,8 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
           {remoteGroups.length === 0 && <p className="muted small pad">No remote branches. Try Fetch.</p>}
         </Section>
 
-        <Section tabId={tab.id} title="Tags" count={tags.length}>
-          <RefTree tabId={tab.id} scope="tag" folder={tagTree} base={10} renderItem={(t, label, pad) => (
+        <Section tabId={layoutKey} title="Tags" count={tags.length}>
+          <RefTree tabId={layoutKey} scope="tag" folder={tagTree} base={10} renderItem={(t, label, pad) => (
             <button
               key={t.name}
               style={{ paddingLeft: pad }}
@@ -262,7 +264,7 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
           {tags.length === 0 && <p className="muted small pad">No tags.</p>}
         </Section>
 
-        <Section tabId={tab.id} title="Stashes" count={d?.stashes.length ?? 0}>
+        <Section tabId={layoutKey} title="Stashes" count={d?.stashes.length ?? 0}>
           {d?.stashes.map((s) => (
             <button
               key={s.ref}
@@ -286,7 +288,7 @@ export function RepoSidebar({ tab, width }: { tab: Tab; width?: number }) {
         </Section>
 
         {(d?.submodules.length ?? 0) > 0 && (
-          <Section tabId={tab.id} title="Submodules" count={d!.submodules.length}>
+          <Section tabId={layoutKey} title="Submodules" count={d!.submodules.length}>
             {d!.submodules.map((m) => (
               <button
                 key={m.path}

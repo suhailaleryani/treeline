@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { api, baseName, errorMessage } from "./api";
 import { gitNeedsSecurityUpdate, outdatedGitMessage } from "./lib/gitVersion";
-import { forgetSections } from "./uiStore";
 import { noFilters, type HistoryFilters } from "./lib/historyFilter";
 import { checkForUpdate } from "./updater";
 import { insertionForChild, moveWithinGroups } from "./lib/tabGroups";
@@ -283,7 +282,6 @@ export const useApp = create<AppState>((set, get) => {
       const next = tabs.filter((t) => t.id !== id).map((t) => (t.parentId === id ? { ...t, parentId: undefined } : t));
       const data = { ...get().data };
       delete data[id];
-      forgetSections(id);
       void api.forgetTabButtons(id).catch(() => undefined);
       const newActive =
         activeId === id ? tabAfterClose(activeHistory, next.map((t) => t.id), id, idx) : activeId;
