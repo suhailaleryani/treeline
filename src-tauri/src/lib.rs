@@ -91,6 +91,7 @@ pub fn run() {
             ops::discard_files,
             ops::apply_patch,
             ops::commit,
+            ops::git_file_at,
             ops::head_message,
             ops::file_diff,
             ops::commit_files,

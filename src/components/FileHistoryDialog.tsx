@@ -21,6 +21,10 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
   const [diff, setDiff] = useState("");
   const [blame, setBlame] = useState<BlameLine[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** What the right-hand side shows for the selected commit: its change, or the whole file after or before it. */
+  const [pane, setPane] = useState<"diff" | "after" | "before">("diff");
+  const [content, setContent] = useState<{ key: string; text: string } | null>(null);
+  const [contentError, setContentError] = useState<string | null>(null);
 
   const loadMore = useCallback(
     async (skip: number) => {
@@ -76,6 +80,30 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
     };
   }, [repo, commits, index]);
 
+  const cur = commits[index];
+  const prev = commits[index + 1];
+  const hasParent = !!cur?.parents[0];
+  // The file as it was right after the selected commit, or right before it (the commit's parent, under the old name if renamed).
+  const wanted = useMemo(() => {
+    if (!cur || pane === "diff") return null;
+    if (pane === "after") return { rev: cur.sha, file: cur.file };
+    const parent = cur.parents[0];
+    return parent ? { rev: parent, file: prev && prev.file !== cur.file ? prev.file : cur.file } : null;
+  }, [cur, prev, pane]);
+  useEffect(() => {
+    if (!wanted) return;
+    let live = true;
+    setContentError(null);
+    api
+      .fileAt(repo, wanted.rev, wanted.file)
+      .then((text) => live && setContent({ key: `${wanted.rev}:${wanted.file}`, text }))
+      .catch((e) => live && setContentError(errorMessage(e)));
+    return () => {
+      live = false;
+    };
+  }, [repo, wanted]);
+  const shown = wanted && content?.key === `${wanted.rev}:${wanted.file}` ? content.text : null;
+
   const known = useMemo(() => new Set(commits.map((c) => c.sha)), [commits]);
   const openFromBlame = (sha: string) => {
     if (!known.has(sha)) return;
@@ -125,7 +153,42 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
                 </button>
               )}
             </div>
-            <div className="fh-diff">{sel ? <DiffView text={diff} fileLabel={file} /> : <div className="empty">Select a commit.</div>}</div>
+            <div className="fh-right">
+              {sel && (
+                <div className="seg fh-pane" role="tablist" aria-label="What to show for this commit">
+                  <button role="tab" aria-selected={pane === "diff"} className={pane === "diff" ? "active" : ""} onClick={() => setPane("diff")}>
+                    Changes
+                  </button>
+                  <button role="tab" aria-selected={pane === "after"} className={pane === "after" ? "active" : ""} onClick={() => setPane("after")} title="The whole file as it was at this commit">
+                    File at this commit
+                  </button>
+                  <button role="tab" aria-selected={pane === "before"} className={pane === "before" ? "active" : ""} disabled={!hasParent} onClick={() => setPane("before")} title={hasParent ? "The whole file as it was just before this commit" : "This commit created the file"}>
+                    File before it
+                  </button>
+                </div>
+              )}
+              <div className="fh-diff">
+                {!sel ? (
+                  <div className="empty">Select a commit.</div>
+                ) : pane === "diff" ? (
+                  <DiffView text={diff} fileLabel={file} />
+                ) : contentError ? (
+                  <ErrorBox text={contentError} compact />
+                ) : shown === null ? (
+                  <p className="muted small pad">Loading…</p>
+                ) : (
+                  <pre className="fh-file" aria-label="File content">
+                    {shown.split(/\r?\n/).map((line, i) => (
+                      <span key={i} className="fh-line">
+                        <span className="blame-no">{i + 1}</span>
+                        {line || " "}
+                        {"\n"}
+                      </span>
+                    ))}
+                  </pre>
+                )}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="blame" role="table" aria-label="Who last changed each line">

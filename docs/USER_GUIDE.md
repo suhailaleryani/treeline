@@ -351,6 +351,7 @@ Open **History** (sidebar).
 * **History of one file:** right-click a file (in File status, or in a commit's list of changed files) and choose
   **File history…**. You see every commit that changed that file, even before it was renamed, and the change each one
   made.
+* **Open the file at a commit:** in the file history, pick a commit and use **File at this commit** to see the whole file as it was right after that commit, or **File before it** for the version just before it (under its old name if it was renamed). **Changes** goes back to the diff. Binary files cannot be shown as text, and a file over 1 MB is cut off.
 * **Who changed each line (Blame):** right-click a file and choose **Blame…**, or switch to the **Blame** tab in the file
   history window. Each line shows who last changed it, when, and in which commit; click that name to jump to the
   commit in the file's history. From a commit's file list, **Blame at this commit…** shows the file as it was then.

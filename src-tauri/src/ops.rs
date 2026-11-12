@@ -1992,6 +1992,33 @@ pub async fn git_blame(path: String, file: String, rev: Option<String>) -> Resul
     .await
 }
 
+/// The content of `file` as it was at `rev` (a commit, or `<commit>^` for the version before it). Text only, and
+/// capped so a huge file cannot flood the window.
+#[tauri::command]
+pub async fn git_file_at(path: String, rev: String, file: String) -> Result<String, String> {
+    blocking(move || {
+        ensure_allowed(&path)?;
+        ref_arg(&rev)?;
+        if rev.is_empty() || file.is_empty() || file.contains('\0') {
+            return Err("Choose a commit and a file.".into());
+        }
+        let text = run_git(&path, [LITERAL.to_string(), "show".into(), format!("{rev}:{file}")])?;
+        if text.contains('\0') {
+            return Err("This file is binary, so it cannot be shown as text.".into());
+        }
+        const CAP: usize = 1_000_000;
+        if text.len() > CAP {
+            let mut cut = CAP;
+            while !text.is_char_boundary(cut) {
+                cut -= 1;
+            }
+            return Ok(format!("{}\n\n[Shown up to the first 1 MB; the file is larger.]", &text[..cut]));
+        }
+        Ok(text)
+    })
+    .await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
