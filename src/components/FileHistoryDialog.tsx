@@ -178,7 +178,7 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
                   <p className="muted small pad">Loading…</p>
                 ) : (
                   <pre className="fh-file" aria-label="File content">
-                    {shown.split(/\r?\n/).map((line, i) => (
+                    {shown.replace(/\r?\n$/, "").split(/\r?\n/).map((line, i) => (
                       <span key={i} className="fh-line">
                         <span className="blame-no">{i + 1}</span>
                         {line || " "}
