@@ -4,6 +4,7 @@ import { gitNeedsSecurityUpdate, outdatedGitMessage } from "./lib/gitVersion";
 import { forgetSections } from "./uiStore";
 import { noFilters, type HistoryFilters } from "./lib/historyFilter";
 import { checkForUpdate } from "./updater";
+import { insertionForChild, moveWithinGroups } from "./lib/tabGroups";
 import { noteActive, tabAfterClose } from "./lib/tabHistory";
 import { addRecent, type RecentRepo } from "./lib/recent";
 import { cleanPrefs, DEFAULT_TOOLBAR, type ToolbarPrefs } from "./lib/toolbarItems";
@@ -278,7 +279,8 @@ export const useApp = create<AppState>((set, get) => {
       const { tabs, activeId } = get();
       const idx = tabs.findIndex((t) => t.id === id);
       if (idx < 0) return;
-      const next = tabs.filter((t) => t.id !== id);
+      // Submodule tabs of a closed repository stay open, as tabs of their own.
+      const next = tabs.filter((t) => t.id !== id).map((t) => (t.parentId === id ? { ...t, parentId: undefined } : t));
       const data = { ...get().data };
       delete data[id];
       forgetSections(id);
@@ -301,13 +303,8 @@ export const useApp = create<AppState>((set, get) => {
 
     moveTab(id, toIndex) {
       const tabs = get().tabs;
-      const from = tabs.findIndex((t) => t.id === id);
-      const to = Math.max(0, Math.min(toIndex, tabs.length - 1));
-      if (from < 0 || from === to) return;
-      const next = [...tabs];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      set({ tabs: next });
+      const next = moveWithinGroups(tabs, id, Math.max(0, Math.min(toIndex, tabs.length - 1)));
+      if (next !== tabs) set({ tabs: next });
     },
 
     cycleTab(step) {
@@ -353,12 +350,12 @@ export const useApp = create<AppState>((set, get) => {
       }
       const active = tabs.find((t) => t.id === activeId);
       const name = baseName(top);
-      const parentIdx = afterTabId ? tabs.findIndex((t) => t.id === afterTabId) : -1;
-      if (parentIdx >= 0) {
-        // A submodule opens right next to its parent repository, not at the far end of the tab bar.
-        const tab: Tab = { id: uid(), path: top, name };
+      const slot = afterTabId ? insertionForChild(tabs, afterTabId) : null;
+      if (slot) {
+        // A submodule opens inside its parent repository's group, right after it, not at the far end of the tab bar.
+        const tab: Tab = { id: uid(), path: top, name, parentId: slot.root };
         const next = [...tabs];
-        next.splice(parentIdx + 1, 0, tab);
+        next.splice(slot.index, 0, tab);
         set({ tabs: next, activeId: tab.id });
       } else if (active && active.path === null) {
         set({ tabs: tabs.map((t) => (t.id === active.id ? { ...t, path: top, name } : t)) });
