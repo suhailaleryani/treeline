@@ -304,7 +304,7 @@ Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untrack
 2. Press **Commit** or `Ctrl+Enter`.
 * **Amend last commit** – tick the box to rewrite the previous commit with the currently staged changes and/or a new
   message. Don't amend a commit you've already pushed and shared.
-* **Messages** (next to the length counter) opens a list under the box with the latest commit messages (from this repository and from what you committed here) and your most used ones. Click one and it goes straight into the message box.
+* The **history icon** in the corner of the message box opens a list under the box with the latest commit messages (from this repository and from what you committed here) and your most used ones. Click one and it goes straight into the message box.
 * **Commit & push…** commits, then opens the Push dialog.
 
 ### 5.4 Push your work
