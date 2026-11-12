@@ -104,6 +104,8 @@ export interface Tab {
   /** Repository folder, or null for a "new tab" home page. */
   path: string | null;
   name: string;
+  /** For a submodule opened from a repository tab: that repository's tab. The two stay together in the tab bar. */
+  parentId?: string;
 }
 
 export interface Bookmark {

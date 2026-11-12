@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { useApp } from "../store";
 import { openMenu, useUi, type MenuItem } from "../uiStore";
 import { repoActions } from "../actions";
 import { openGuide } from "../guide";
 import { Icon } from "./Icon";
+import { groupHue, groupRoot, inGroup } from "../lib/tabGroups";
 import { formatShortcut } from "../lib/shortcut";
 
 export function TabBar() {
@@ -93,17 +94,19 @@ export function TabBar() {
       <div className="tabs" ref={scroller}>
       {tabs.map((t, i) => {
         const s = data[t.id]?.status;
+        const grouped = inGroup(tabs, t);
         const dirty = (s?.files.length ?? 0) > 0;
         return (
           <div
             key={t.id}
             role="tab"
             aria-selected={t.id === activeId}
-            className={`tab${t.id === activeId ? " active" : ""}${drag?.id === t.id ? " dragging" : ""}${
+            className={`tab${t.id === activeId ? " active" : ""}${grouped ? " grouped" : ""}${drag?.id === t.id ? " dragging" : ""}${
               drag?.slot === i ? " drop-before" : ""
             }${drag && drag.slot === tabs.length && i === tabs.length - 1 ? " drop-after" : ""}`}
             title={t.path ? `${t.name}
 ${t.path}` : "New tab"}
+            style={grouped ? ({ "--group": groupHue(groupRoot(tabs, t)) } as CSSProperties) : undefined}
             onPointerDown={(e) => startDrag(e, t.id)}
             onClick={() => setActive(t.id)}
             onContextMenu={(e) => tabMenu(e, t.id)}
