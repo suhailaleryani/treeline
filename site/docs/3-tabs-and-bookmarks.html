@@ -45,12 +45,16 @@
 <main class="doc-main" id="main">
 <article class="prose">
 <h1>3. Tabs and bookmarks</h1>
+<p><img src="../assets/tab-menu.png" alt="Right-clicking a tab opens a menu: Fetch, Pull, Push, Open submodules, Sync subs, Sync and pull subs, Sync and bump pointers and Close tab. The tabs of a repository and its submodules share a coloured top edge."></p>
 <ul>
 <li>Each repository opens in its own <strong>tab</strong>. Switching tabs is instant; only the tab you are looking at is refreshed.</li>
 <li><code>Ctrl+T</code> new tab · <code>Ctrl+W</code> close tab · <code>Ctrl+Tab</code> / <code>Ctrl+Shift+Tab</code> next / previous · middle-click a tab to close it.</li>
 <li>Your open tabs are <strong>restored</strong> next time you start the app.</li>
-<li><strong>Drag a tab</strong> left or right to put your tabs in the order you like; the order is remembered. Each tab also remembers which sidebar sections (Branches, Remotes, Tags, Stashes, Submodules) you opened or closed. A repository starts with <strong>every sidebar section collapsed</strong>; open the ones you need and the tab keeps them open, also after a restart.</li>
+<li><strong>Drag a tab</strong> left or right to put your tabs in the order you like; the order is remembered. Each repository remembers which sidebar sections (Branches, Remotes, Tags, Stashes, Submodules) you opened or closed, and keeps them when you close its tab and open the folder again. A repository you open for the first time starts with <strong>every sidebar section collapsed</strong>; open the ones you need and they stay open, also after closing the tab and after a restart.</li>
 <li><strong>Many tabs:</strong> tabs get narrower as you open more (hover a tab for its full name and folder). When they no longer fit, turn the <strong>mouse wheel</strong> over the tab bar to scroll sideways. The selected tab is always scrolled into view.</li>
+<li><strong>Closing a tab</strong> returns you to the tab you were on before, not the next one along. Open a submodule, close it, and you are back on the repository you came from.</li>
+<li><strong>Right-click a tab</strong> for that repository&#39;s actions without switching to it: <strong>Fetch</strong>, <strong>Pull</strong>, <strong>Push…</strong>, <strong>Open submodules</strong> (every submodule in its own tab, grouped with this one), <strong>Sync subs</strong>, <strong>Sync and pull subs</strong>, <strong>Sync and bump pointers…</strong> and <strong>Close tab</strong>.</li>
+<li><strong>Submodule tabs stay with their parent.</strong> A submodule you open sits to the right of its parent&#39;s tab, and the group shares a coloured top edge. A submodule tab can only be dragged within its group; dragging the parent moves the whole group, and a repository cannot be dropped in the middle of another group. If you close the parent, its submodule tabs stay open as ordinary tabs.</li>
 <li>A small orange dot on a tab means that repository has uncommitted changes.</li>
 <li><strong>Bookmarks:</strong> click the ☆ next to the repository name to bookmark it (★ = bookmarked). Remove it by clicking ★ again,
 or the ✕ on the bookmark card.</li>

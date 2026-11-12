@@ -84,9 +84,50 @@
         <div class="text">
           <h3>Submodules that just work</h3>
           <p>See their state at a glance, open one with a double-click — it appears in a tab right beside its parent — and update them all in one step.</p>
-          <ul><li>Initialised on demand when you open them</li><li>Switch every submodule to the same branch in one click</li><li>Clone with submodules; a failing submodule only warns</li><li>Status from a single fast query, not a slow per-module scan</li></ul>
+          <ul><li>Initialised on demand when you open them</li><li>Switch every submodule to the same branch in one click, or sync, commit the new pointers and push in one dialog</li><li>Right-click a tab to open all its submodules at once</li><li>Clone with submodules; a failing submodule only warns</li><li>Status from a single fast query, not a slow per-module scan</li></ul>
         </div>
-        <figure class="shot"><img src="assets/submodules.png" width="1382" height="822" loading="lazy" alt="A submodule open in its own tab, directly to the right of its parent repository's tab."></figure>
+        <figure class="shot"><img src="assets/submodules.png" width="1382" height="822" loading="lazy" alt="Two submodules open in their own tabs, directly to the right of their parent repository's tab, all three sharing a coloured top edge."></figure>
+      </div>
+
+      <div class="feature">
+        <div class="text">
+          <h3>One dialog to bump submodule pointers</h3>
+          <p>Pick a branch and Treeline checks out the parent on it, switches every submodule to the same branch, commits the new submodule commits with your message, and can push the result.</p>
+          <ul><li>Only the submodule pointers are committed, never other staged changes</li><li>Optionally pulls each submodule first, fast-forward only</li><li>Also in the right-click menu of every tab</li></ul>
+        </div>
+        <figure class="shot"><img src="assets/bump-pointers.png" width="1382" height="822" loading="lazy" alt="The Sync and bump pointers dialog with a branch drop-down, a commit message, and checkboxes to pull each submodule first and to push afterwards."></figure>
+      </div>
+
+      <div class="feature">
+        <div class="text">
+          <h3>Right-click a tab, get its actions</h3>
+          <p>Fetch, pull, push, open the submodules or sync them without switching tabs first. Submodule tabs sit next to their parent in a shared colour, and closing a tab takes you back to the one you came from.</p>
+        </div>
+        <figure class="shot"><img src="assets/tab-menu.png" width="1382" height="822" loading="lazy" alt="The right-click menu of a tab: Fetch, Pull, Push, Open submodules, Sync subs, Sync and pull subs, Sync and bump pointers and Close tab."></figure>
+      </div>
+
+      <div class="feature">
+        <div class="text">
+          <h3>Reuse a commit message in one click</h3>
+          <p>A history icon in the message box lists the latest commits of the repository and your most used messages. Click one and it is in the box.</p>
+        </div>
+        <figure class="shot"><img src="assets/commit-messages.png" width="1382" height="822" loading="lazy" alt="The commit message box with a list of earlier commit messages open beneath it."></figure>
+      </div>
+
+      <div class="feature">
+        <div class="text">
+          <h3>See a file as it was</h3>
+          <p>Open the history of a file, pick a commit, and read the whole file as it was at that commit or just before it, renames included.</p>
+        </div>
+        <figure class="shot"><img src="assets/file-at-commit.png" width="1382" height="822" loading="lazy" alt="The file history dialog showing the whole file as it was at the selected commit, with line numbers."></figure>
+      </div>
+
+      <div class="feature">
+        <div class="text">
+          <h3>A push that says what it will do</h3>
+          <p>The Push dialog tells you how many commits go where, or that you have to pull first, and lets you choose the branch from a list.</p>
+        </div>
+        <figure class="shot"><img src="assets/push-dialog.png" width="1382" height="822" loading="lazy" alt="The Push dialog: four commits on develop will be pushed to origin/develop, with a remote, a branch to push and options for upstream, tags and force with lease."></figure>
       </div>
 
       <div class="feature">
@@ -101,7 +142,7 @@
       <div class="feature">
         <div class="text">
           <h3>Looks right in the light, too</h3>
-          <p>Dark and light themes, resizable panes and sidebar, a built-in terminal you can divide and dock at the bottom or the right, a command palette for everything (<kbd>Ctrl</kbd>+<kbd>K</kbd>), and keyboard shortcuts for the rest.</p>
+          <p>Dark and light themes, resizable panes and sidebar, a built-in terminal you can divide and dock at the bottom or the right (closing one ends its shell and everything it started), a command palette for everything (<kbd>Ctrl</kbd>+<kbd>K</kbd>), and keyboard shortcuts for the rest.</p>
         </div>
         <figure class="shot"><img src="assets/light.png" width="1382" height="822" loading="lazy" alt="The history view in the light theme."></figure>
       </div>

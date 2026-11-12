@@ -83,11 +83,13 @@ merge commit and merge again.</p>
 <p>Right-click a branch → <em>Rebase current onto this…</em> replays your commits on top of another branch for a linear history.
 Only rebase commits you haven&#39;t shared.</p>
 <h3 id="interactive-rebase-tidy-up-recent-commits">Interactive rebase (tidy up recent commits)</h3>
+<p><img src="../assets/rebase.png" alt="The interactive rebase dialog listing three commits, each with a Pick, Reword, Edit, Squash, Fixup or Drop selector."></p>
 <p>Right-click a commit in History → <strong>Interactive rebase from here…</strong>. For each commit choose <strong>Pick</strong>, <strong>Reword</strong> (edit the
 message), <strong>Edit</strong> (pause to amend it), <strong>Squash</strong> (merge into the one before, combining messages), <strong>Fixup</strong> (merge,
 discarding its message) or <strong>Drop</strong>. Use the arrows to reorder (newest on top). Uncommitted changes are stashed and restored
 automatically. Merge commits aren&#39;t listed (a rebase flattens them).</p>
 <h3 id="conflicts">Conflicts</h3>
+<p><img src="../assets/conflicts.png" alt="The conflict resolver with the ours and theirs versions of a conflicting line and an editable result."></p>
 <p>A conflict means both sides changed the same lines. The operation <strong>pauses</strong> — nothing is lost.</p>
 <ol>
 <li>A yellow banner (“Merge in progress …”) appears in File status; conflicted files are listed under <strong>Conflicts</strong>.</li>

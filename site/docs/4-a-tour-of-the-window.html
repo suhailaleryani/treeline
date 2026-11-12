@@ -45,6 +45,7 @@
 <main class="doc-main" id="main">
 <article class="prose">
 <h1>4. A tour of the window</h1>
+<p><img src="../assets/history-detail.png" alt="The history view with a commit selected: the repository name and branch, the toolbar, the sidebar, the commit graph and the details of the selected commit."></p>
 <pre><code>┌ Tabs ─────────────────────────────────────────────────────  ⌘ palette · ☀ theme ┐
 │ Repo name · branch chip · ★   [Commit] [Fetch][Pull▾][Push] [Branch][Sync subs][Merge][Stash][Tag] [Add][More][Refresh]        │
 ├──────────────┬──────────────────────────────────────────────────────────────────┤
@@ -63,32 +64,46 @@
 └──────────────────────────────────────────────────────────────────────────────────┘
 </code></pre>
 <ul>
-<li><strong>Toolbar badges:</strong> the number on <em>Commit</em> is how many files changed; on <em>Push</em> how many commits you haven&#39;t pushed; on
-<em>Pull</em> how many commits are waiting on the server.</li>
-<li><strong>Branch chip</strong> <code>main ↑1 ↓2</code> – you are 1 commit ahead of and 2 commits behind the remote branch.</li>
-<li><strong>Sync subs</strong> appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers <strong>Sync</strong> (the same) and <strong>Sync and pull</strong> (switch, then pull each one).</li>
-<li><strong>More</strong> holds the less common actions: <strong>Merge into several branches…</strong> (merges one branch into several at once, with a
+<li><p><strong>Toolbar badges:</strong> the number on <em>Commit</em> is how many files changed; on <em>Push</em> how many commits you haven&#39;t pushed; on
+<em>Pull</em> how many commits are waiting on the server.</p>
+</li>
+<li><p><strong>Branch chip</strong> <code>main ↑1 ↓2</code> – you are 1 commit ahead of and 2 commits behind the remote branch.</p>
+</li>
+<li><p><strong>Sync subs</strong> appears when the repository has submodules (section 9). Click it to switch the submodules to the current branch; the small arrow beside it offers <strong>Sync</strong> (the same) and <strong>Sync and pull</strong> (switch, then pull each one).</p>
+</li>
+<li><p><strong>More</strong> holds the less common actions: <strong>Merge into several branches…</strong> (merges one branch into several at once, with a
 conflict check first; section 10), <strong>Clean up merged branches…</strong> and <strong>Show in Explorer / Finder</strong>,
 plus any toolbar buttons that do not fit the window. They are ordinary toolbar buttons that start here: click <strong>Show in
-toolbar</strong> next to one to bring it out (see <em>Ordering the toolbar</em> below). <strong>Add</strong> makes a button of your own.</li>
-<li><strong>Hover for hints.</strong> The buttons in the conflict resolver (Use ours, Keep theirs, Mark resolved …) explain exactly what
-they do and name the branches involved.</li>
-<li><strong>Right-click</strong> almost anything (branches, tags, stashes, files, commits, submodules) for its actions.</li>
-<li><strong>Drag the thin dividers</strong> between panels to resize them, including the edge between the sidebar and the main area (160 to 600 pixels); sizes are remembered. Double-click a divider to go back to its usual size.</li>
-<li><strong>Theme:</strong> the ☀ button switches light/dark (or choose “follow system” in the command palette).</li>
-<li><strong>Command palette</strong> (<code>Ctrl+K</code>): type to find any action — Fetch, New branch, Check out <em>x</em>, Open bookmark <em>y</em>, Run <em>a custom button</em>…</li>
-<li><strong>This guide is built into the app.</strong> Press <code>F1</code> or click the <strong>?</strong> button at the top right. It opens in its own window and works offline. Error panels have a <strong>Learn more</strong> button that opens the
-page on fixing errors, and the command palette has shortcuts to the most useful pages.</li>
+toolbar</strong> next to one to bring it out (see <em>Ordering the toolbar</em> below). <strong>Add</strong> makes a button of your own.</p>
+</li>
+<li><p><strong>Hover for hints.</strong> The buttons in the conflict resolver (Use ours, Keep theirs, Mark resolved …) explain exactly what
+they do and name the branches involved.</p>
+</li>
+<li><p><strong>Right-click</strong> almost anything (branches, tags, stashes, files, commits, submodules) for its actions.</p>
+</li>
+<li><p><strong>Drag the thin dividers</strong> between panels to resize them, including the edge between the sidebar and the main area (160 to 600 pixels); sizes are remembered. Double-click a divider to go back to its usual size.</p>
+</li>
+<li><p><strong>Theme:</strong> the ☀ button switches light/dark (or choose “follow system” in the command palette).</p>
+</li>
+<li><p>The light theme has tinted panels and clear borders, so the layers stay easy to tell apart:</p>
+<p><img src="../assets/light.png" alt="The history view in the light theme."></p>
+</li>
+<li><p><strong>Command palette</strong> (<code>Ctrl+K</code>): type to find any action — Fetch, New branch, Check out <em>x</em>, Open bookmark <em>y</em>, Run <em>a custom button</em>…</p>
+</li>
+<li><p><strong>This guide is built into the app.</strong> Press <code>F1</code> or click the <strong>?</strong> button at the top right. It opens in its own window and works offline. Error panels have a <strong>Learn more</strong> button that opens the
+page on fixing errors, and the command palette has shortcuts to the most useful pages.</p>
+</li>
 </ul>
 <h3 id="the-built-in-terminal">The built-in terminal</h3>
+<p><img src="../assets/terminal.png" alt="The built-in terminal docked below the history view, running git log."></p>
 <p>The <strong>Terminal</strong> toolbar button shows and hides a terminal inside the window (or press <code>Ctrl+``, </code>Cmd+`` on a Mac). It
 starts a shell in the folder of the repository you have open: PowerShell on Windows, your login shell on macOS and Linux. It
 is there for quick commands such as <code>git reflog</code>, without leaving Treeline.</p>
 <ul>
 <li><strong>It stays put.</strong> The terminal is not part of History or File status: it keeps its place and its contents when you switch
-views or tabs. <strong>Hiding it does not end anything</strong>; a command that is running keeps running, and the text is still there
-when you show it again. Terminals end when you close them or quit the app, and are not restored at the next start.</li>
-<li><strong>Tabs.</strong> Click <strong>+</strong> in a terminal&#39;s header to open another shell in a new tab, and the <strong>✕</strong> on a tab to end that shell.
+views or tabs. <strong>Hiding it (the Terminal button) does not end anything</strong>; a command that is running keeps running, and the text is still there
+when you show it again. <strong>Closing</strong> a terminal does end it: the shell and everything it started (a dev server, a watcher) are stopped. Terminals are not restored at the next start.</li>
+<li><strong>Tabs.</strong> Click <strong>+</strong> in a terminal&#39;s header to open another shell in a new tab, and the <strong>✕</strong> on a tab to end that shell and everything running in it.
 A tab is named with its number and the folder it started in; hover it for the full path.</li>
 <li><strong>Divide.</strong> <strong>Divide</strong> adds a new piece next to this one (below it, when the pieces are on the right), each with its own
 tabs, so you can watch a build in one and work in another. Click a piece to give it the keyboard; the one you are
@@ -96,6 +111,7 @@ typing in has a blue outline when there is more than one.</li>
 <li><strong>Move a piece to the right (or back to the bottom).</strong> <strong>Move right</strong> / <strong>Move bottom</strong> sends just that piece to the other
 side of the window; the others stay where they are. Pieces at the bottom sit side by side; pieces on the right stack
 from top to bottom. A moved piece keeps its shells running and its text.</li>
+<li><strong>Close a piece.</strong> The <strong>✕</strong> at the end of a piece&#39;s header closes that piece and ends all its terminals; the other pieces stay. The terminal area hides once the last piece is closed.</li>
 <li><strong>Resize.</strong> Drag the edge of the terminal area (double-click it for the usual size). The bottom and the right each
 remember their own size, and pieces on the same side share the room equally.</li>
 <li><strong>Restart here</strong> replaces the current tab&#39;s shell with a new one in the repository you have open now. A terminal starts in

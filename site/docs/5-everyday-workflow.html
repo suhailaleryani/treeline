@@ -55,6 +55,7 @@
 <p>Click a file to see its changes on the right. Colours: green = added, red = removed.
 Badges: <strong>M</strong> modified, <strong>A</strong> added, <strong>D</strong> deleted, <strong>R</strong> renamed, <strong>U</strong> untracked, <strong>!</strong> conflict.</p>
 <h3 id="52-stage-and-unstage">5.2 Stage and unstage</h3>
+<p><img src="../assets/line-staging.png" alt="A diff with three added lines ticked and a highlighted Stage 3 lines button in the hunk header."></p>
 <ul>
 <li>Click <strong>+</strong> next to a file to stage it (or <strong>×</strong> to unstage). Double-click a row for the same effect.</li>
 <li><strong>Stage all / Unstage all</strong> buttons are in each section header.</li>
@@ -69,6 +70,7 @@ final newline, only whole-hunk staging is offered, to avoid corrupting the file.
 undone</strong>; the app asks first.</li>
 </ul>
 <h3 id="53-commit">5.3 Commit</h3>
+<p><img src="../assets/commit-messages.png" alt="The commit message box with its history list open, showing the latest commit messages of the repository."></p>
 <ol>
 <li>Write a message in the box under the lists. Aim for a short first line (the counter turns amber past 72 characters).</li>
 <li>Press <strong>Commit</strong> or <code>Ctrl+Enter</code>.</li>
@@ -76,10 +78,12 @@ undone</strong>; the app asks first.</li>
 <ul>
 <li><strong>Amend last commit</strong> – tick the box to rewrite the previous commit with the currently staged changes and/or a new
 message. Don&#39;t amend a commit you&#39;ve already pushed and shared.</li>
+<li>The <strong>history icon</strong> in the corner of the message box opens a list under the box with the latest commit messages (from this repository and from what you committed here) and your most used ones. Click one and it goes straight into the message box.</li>
 <li><strong>Commit &amp; push…</strong> commits, then opens the Push dialog.</li>
 </ul>
 <h3 id="54-push-your-work">5.4 Push your work</h3>
-<p>Press <strong>Push</strong>. The dialog lets you choose the remote and branch. Tick <strong>Track this remote branch</strong> the first time you push
+<p><img src="../assets/push-dialog.png" alt="The Push dialog: it says that four commits on develop go to origin/develop, with a remote, a branch to push, and options for upstream, tags and force with lease."></p>
+<p>Press <strong>Push</strong>. The dialog says what is about to happen (how many commits go to which branch, or that the branch has no upstream yet, or that you need to pull first) and lets you choose the remote and the branch from a list. Tick <strong>Track this remote branch</strong> the first time you push
 a new branch. <strong>Force push (with lease)</strong> overwrites the remote branch only if nobody else has pushed since you last
 fetched — use it after rewriting history (rebase/amend), never casually.</p>
 
