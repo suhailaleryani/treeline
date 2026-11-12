@@ -78,10 +78,11 @@ export function TabBar() {
       items.push(
         { label: "Fetch", disabled: busy, onClick: () => a.fetch() },
         { label: "Pull", disabled: busy, onClick: () => a.pull("merge") },
-        { label: "Push�", disabled: busy, onClick: () => a.push() },
+        { label: "Push…", disabled: busy, onClick: () => a.push() },
         { separator: true },
         { label: "Sync subs", disabled: busy || !hasSubs || !branch, onClick: () => branch && void a.switchSubmodules(branch) },
         { label: "Sync and pull subs", disabled: busy || !hasSubs || !branch, onClick: () => branch && void a.switchSubmodules(branch, true) },
+        { label: "Sync and bump pointers…", disabled: busy || !hasSubs || !branch, onClick: () => a.syncAndBump() },
         { separator: true },
       );
     }

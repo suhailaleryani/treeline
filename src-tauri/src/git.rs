@@ -1077,6 +1077,39 @@ pub async fn switch_submodules_branch(path: String, branch: String, pull: Option
     .await
 }
 
+/// Commits the new submodule commits in this repository ("bumps the pointers"): only the submodules whose checked-out
+/// commit differs from the one recorded here are committed, and nothing else that happens to be staged.
+#[tauri::command]
+pub async fn bump_submodule_pointers(path: String, message: String) -> Result<OpResult, String> {
+    blocking(move || {
+        ensure_allowed(&path)?;
+        if message.trim().is_empty() {
+            return Err("Write a commit message first.".into());
+        }
+        // `git submodule status` marks a submodule whose commit differs from the recorded one with a leading '+'.
+        let status = run_git(&path, ["submodule", "status"])?;
+        let changed: Vec<String> = status
+            .lines()
+            .filter(|l| l.starts_with('+'))
+            .filter_map(|l| l[1..].split_whitespace().nth(1).map(str::to_string))
+            .collect();
+        if changed.is_empty() {
+            return Ok(OpResult { ok: true, output: "The submodule pointers are already up to date. Nothing to commit.".into() });
+        }
+        let mut add = vec!["add".to_string(), "--".to_string()];
+        add.extend(changed.iter().cloned());
+        let added = run_op(&path, add, &[])?;
+        if !added.ok {
+            return Ok(added);
+        }
+        let mut commit = vec!["commit".to_string(), "-m".to_string(), message, "--".to_string()];
+        commit.extend(changed.iter().cloned());
+        let res = run_op(&path, commit, &[])?;
+        Ok(if res.ok { OpResult { ok: true, output: format!("Committed new pointers for {}.", changed.join(", ")) } } else { res })
+    })
+    .await
+}
+
 /// Updates every submodule to the commit recorded by the superproject.
 #[tauri::command]
 pub async fn update_submodules(path: String, remote: bool) -> Result<OpResult, String> {
