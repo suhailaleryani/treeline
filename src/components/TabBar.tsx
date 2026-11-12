@@ -80,6 +80,16 @@ export function TabBar() {
         { label: "Pull", disabled: busy, onClick: () => a.pull("merge") },
         { label: "Push…", disabled: busy, onClick: () => a.push() },
         { separator: true },
+        {
+          label: "Open submodules",
+          disabled: busy || !hasSubs,
+          onClick: () =>
+            void (async () => {
+              // Each one opens in its own tab inside this repository's group; stay on this tab afterwards.
+              for (const m of useApp.getState().data[id]?.submodules ?? []) await a.openSubmodule(m);
+              useApp.getState().setActive(id);
+            })(),
+        },
         { label: "Sync subs", disabled: busy || !hasSubs || !branch, onClick: () => branch && void a.switchSubmodules(branch) },
         { label: "Sync and pull subs", disabled: busy || !hasSubs || !branch, onClick: () => branch && void a.switchSubmodules(branch, true) },
         { label: "Sync and bump pointers…", disabled: busy || !hasSubs || !branch, onClick: () => a.syncAndBump() },
