@@ -217,7 +217,7 @@ export function repoActions(tabId: string) {
         title: "Sync submodules and bump pointers",
         description: `Switches every submodule to ${branch} (where that branch exists), then commits the new submodule commits in this repository. Other staged changes are not part of that commit.`,
         fields: [
-          { key: "message", label: "Commit message", type: "text", value: `Bump submodules to ${branch}` },
+          { key: "message", label: "Commit message", type: "text", value: "submodule commit" },
           { key: "pull", label: "Pull each submodule first (fast-forward only)", type: "checkbox", value: true },
         ],
         submitLabel: "Sync and commit",
