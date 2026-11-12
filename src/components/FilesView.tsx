@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, errorMessage } from "../api";
 import { repoActions } from "../actions";
 import { useSplit } from "../hooks";
@@ -6,7 +6,7 @@ import { splitPath } from "../lib/format";
 import { formatShortcut } from "../lib/shortcut";
 import { useApp } from "../store";
 import type { FileSel } from "../store";
-import { openMenu, useUi, type MenuItem } from "../uiStore";
+import { openMenu, useUi } from "../uiStore";
 import { latestMessages, loadMessages, mostUsedMessages, recordMessage, saveMessages } from "../lib/commitMessages";
 import type { FileChange, Tab } from "../types";
 import { ConflictResolver } from "./ConflictResolver";
@@ -329,22 +329,27 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
     }
   };
 
-  /** Offers the latest and the most used commit messages; picking one fills the box. */
-  const pickMessage = (e: ReactMouseEvent) => {
-    const all = loadMessages();
-    const item = (m: { message: string; count: number }): MenuItem => ({
-      label: m.message.split(/\r?\n/)[0].slice(0, 70),
-      hint: m.count > 1 ? `x${m.count}` : undefined,
-      onClick: () => setUi(tab.id, { draft: m.message }),
-    });
-    const latest = latestMessages(all).map(item);
-    const top = mostUsedMessages(all).map(item);
-    const items: MenuItem[] = [];
-    if (latest.length) items.push({ label: "Latest", disabled: true }, ...latest);
-    if (top.length) items.push({ separator: true }, { label: "Most used", disabled: true }, ...top);
-    if (!items.length) items.push({ label: "No commit messages yet", disabled: true });
-    openMenu(e, items);
+  /** Earlier commit messages, listed under the box; a click puts one straight into the message box. */
+  const [showMessages, setShowMessages] = useState(false);
+  const used = showMessages ? loadMessages() : [];
+  // The newest commits of this repository count as "latest" too, so the list is useful before any message was typed here.
+  const fromRepo: { message: string; count: number; last: number }[] = [];
+  for (const c of d?.log ?? []) {
+    if (fromRepo.length >= 10) break;
+    if (c.subject && !fromRepo.some((m) => m.message === c.subject)) fromRepo.push({ message: c.subject, count: 1, last: c.time * 1000 });
+  }
+  const latest = [...latestMessages(used, 10), ...fromRepo].filter((m, i, all) => all.findIndex((x) => x.message === m.message) === i).slice(0, 10);
+  const top = mostUsedMessages(used, 5);
+  const insert = (m: string) => {
+    setUi(tab.id, { draft: m });
+    setShowMessages(false);
   };
+  const row = (m: { message: string; count: number }, key: string) => (
+    <button key={key} className="msg-item" title={m.message} onClick={() => insert(m.message)}>
+      <span className="ellipsis">{m.message.split(/\r?\n/)[0]}</span>
+      {m.count > 1 && <span className="muted small">x{m.count}</span>}
+    </button>
+  );
 
   return (
     <div className="commit-box">
@@ -358,6 +363,15 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
         }}
         rows={3}
       />
+      {showMessages && (
+        <div className="msg-list" role="list" aria-label="Earlier commit messages">
+          {latest.length === 0 && <p className="muted small pad">No commits yet.</p>}
+          {latest.length > 0 && <div className="muted small msg-head">Latest</div>}
+          {latest.map((m) => row(m, "l" + m.message))}
+          {top.length > 0 && <div className="muted small msg-head">Most used</div>}
+          {top.map((m) => row(m, "t" + m.message))}
+        </div>
+      )}
       <div className="commit-meta">
         <span
           className={first.length > 72 ? "warn-text small" : "muted small"}
@@ -365,7 +379,7 @@ function CommitBox({ tab, stagedCount, conflicts }: { tab: Tab; stagedCount: num
         >
           {first.length}/72
         </span>
-        <button className="btn tiny" onClick={pickMessage} title="Reuse one of your latest or most used commit messages">
+        <button className="btn tiny" aria-expanded={showMessages} onClick={() => setShowMessages((v) => !v)} title="Reuse one of your latest or most used commit messages">
           Messages
         </button>
         <label className="check inline">

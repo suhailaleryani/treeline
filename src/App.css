@@ -333,6 +333,10 @@ body.resizing .splitter::after { background: var(--accent); }
 
 .commit-box { flex-shrink: 0; border-top: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-2); }
 .commit-box textarea { min-height: 64px; font-family: inherit; }
+.msg-list { max-height: 180px; overflow: auto; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-m); padding: 2px; background: var(--bg); }
+.msg-head { padding: 4px 8px 2px; }
+.msg-item { display: flex; justify-content: space-between; gap: 8px; text-align: left; padding: 4px 8px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--text); cursor: pointer; font-size: var(--fs-s); }
+.msg-item:hover { background: var(--accent-soft); }
 .commit-meta { display: flex; justify-content: space-between; align-items: center; }
 .commit-actions { display: flex; gap: 8px; }
 
