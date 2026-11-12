@@ -60,7 +60,7 @@ function entryFor(id: number, path: string): Entry {
   const known = entries.get(id);
   if (known) return known;
   wire();
-  const term = new Terminal({ fontFamily: "Consolas, 'Cascadia Mono', Menlo, monospace", fontSize: 13, cursorBlink: true, theme: themeColors() });
+  const term = new Terminal({ fontFamily: "Consolas, 'Cascadia Mono', Menlo, monospace", fontSize: 13, cursorBlink: true, scrollback: 5000, scrollOnUserInput: true, theme: themeColors() });
   const fit = new FitAddon();
   term.loadAddon(fit);
   const e: Entry = { term, fit, path, session: null, starting: false, disposed: false, opened: false };
@@ -114,12 +114,15 @@ export function attachTerminal(id: number, path: string, host: HTMLElement) {
   } else if (e.term.element && e.term.element.parentElement !== host) {
     host.appendChild(e.term.element);
   }
+  // A remounted view loses its scroll position; keep what the user was reading.
+  const top = e.term.buffer.active.viewportY;
   try {
     e.fit.fit();
   } catch {
     /* not laid out yet; the resize observer refits */
   }
   e.term.refresh(0, Math.max(0, e.term.rows - 1));
+  e.term.scrollToLine(top);
   start(e);
 }
 
