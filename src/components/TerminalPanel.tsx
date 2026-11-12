@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSplit } from "../hooks";
 import { applyTerminalTheme, attachTerminal, focusTerminal, refitTerminal } from "../lib/terminalRegistry";
 import { useApp } from "../store";
-import { addTab, closeTab, focusGroup, moveGroup, newGroup, restartTab, selectTab, useTerminals, type Dock, type TermGroup, type TermTab } from "../terminalStore";
+import { addTab, closeGroup, closeTab, focusGroup, moveGroup, newGroup, restartTab, selectTab, useTerminals, type Dock, type TermGroup, type TermTab } from "../terminalStore";
 import { useUi } from "../uiStore";
 import { Icon } from "./Icon";
 import "@xterm/xterm/css/xterm.css";
@@ -67,7 +67,7 @@ function GroupView({ group, focused, activePath }: { group: TermGroup; focused: 
         <button className="btn tiny" disabled={!activePath} onClick={() => activePath && restartTab(group.id, cur.id, activePath)} title="Start a new shell in the active repository, replacing this one">
           Restart here
         </button>
-        <button className="icon-btn" aria-label="Hide the terminals" title="Hide (the shells keep running)" onClick={() => useUi.setState({ terminalOpen: false })}>
+        <button className="icon-btn" aria-label="Close this group" title="Close this group and end its shells" onClick={() => closeGroup(group.id)}>
           <Icon name="x" size={12} />
         </button>
       </div>
