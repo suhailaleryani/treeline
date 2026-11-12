@@ -153,6 +153,7 @@ export function Toolbar({ tab }: { tab: Tab }) {
           ? [
               { label: "Sync — switch branches only", onClick: () => void a.switchSubmodules(branch) },
               { label: "Sync and pull — switch, then pull (fast-forward)", onClick: () => void a.switchSubmodules(branch, true) },
+              { label: "Sync and bump pointers… — switch, then commit the new pointers", onClick: () => a.syncAndBump() },
             ]
           : [];
         return {
