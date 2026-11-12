@@ -731,4 +731,6 @@ body.toolbar-dragging, body.toolbar-dragging * { cursor: grabbing !important; }
 .terminal-tab { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border-radius: var(--r-s); cursor: pointer; max-width: 180px; white-space: nowrap; }
 .terminal-tab:hover { background: var(--bg-3); }
 .terminal-tab.active { background: var(--bg-4); color: var(--text); }
-.terminal-body { flex: 1; min-height: 0; padding: 4px 0 4px 8px; }
+.terminal-body { flex: 1; min-height: 0; min-width: 0; overflow: hidden; padding: 4px 0 4px 8px; }
+.terminal-body .xterm { height: 100%; }
+.terminal-body .xterm-viewport { overflow-y: scroll; overscroll-behavior: contain; }
