@@ -304,6 +304,7 @@ details[open] > summary > .icon:first-child { transform: rotate(90deg); }
 .files-view { grid-template-columns: 340px 6px 1fr; }
 .files-left { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; background: var(--bg-2); border-right: 1px solid var(--border); }
 .files-right, .detail-right { min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
+.file-lists:focus { outline: none; }
 .file-lists { flex: 1 1 auto; overflow: auto; min-height: 140px; }
 .list-title { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--bg-2); position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .list-title .btn { margin-left: auto; text-transform: none; letter-spacing: 0; }

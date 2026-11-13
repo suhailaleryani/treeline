@@ -102,6 +102,44 @@ export function FilesView({ tab }: { tab: Tab }) {
   const select = (f: FileChange, kind: FileSel["kind"]) =>
     setUi(tab.id, { sel: { path: f.path, kind, untracked: f.untracked } });
 
+  // Multi-selection: one list at a time (staged or unstaged). `sel` stays the file whose diff is shown.
+  type ListKind = "staged" | "unstaged";
+  const [multi, setMulti] = useState<{ kind: ListKind; paths: string[]; anchor: string } | null>(null);
+  const listOf = (k: ListKind) => (k === "staged" ? staged : unstaged);
+  const pickedPaths = new Set(multi ? listOf(multi.kind).map((f) => f.path).filter((p) => multi.paths.includes(p)) : []);
+  const pickedFiles = (k: ListKind) => (multi?.kind === k ? listOf(k).filter((f) => pickedPaths.has(f.path)) : []);
+  /** What an action on row `f` applies to: the whole selection when `f` is part of it, else just `f`. */
+  const targets = (f: FileChange, k: FileSel["kind"]): FileChange[] =>
+    k !== "conflict" && multi?.kind === k && pickedPaths.size > 1 && pickedPaths.has(f.path) ? pickedFiles(k) : [f];
+
+  const clickRow = (e: React.MouseEvent, f: FileChange, kind: FileSel["kind"]) => {
+    select(f, kind);
+    if (kind === "conflict") return setMulti(null);
+    const list = listOf(kind);
+    if (e.shiftKey && multi?.kind === kind) {
+      const a = list.findIndex((x) => x.path === multi.anchor);
+      const b = list.findIndex((x) => x.path === f.path);
+      if (a >= 0 && b >= 0) {
+        const [lo, hi] = a < b ? [a, b] : [b, a];
+        return setMulti({ kind, anchor: multi.anchor, paths: list.slice(lo, hi + 1).map((x) => x.path) });
+      }
+    }
+    if (e.ctrlKey || e.metaKey) {
+      // Start from the file already shown, if it is in this list, so the first Ctrl-click adds to it.
+      const base = multi?.kind === kind ? pickedFiles(kind).map((x) => x.path) : sel?.kind === kind ? [sel.path] : [];
+      const paths = base.includes(f.path) ? base.filter((p) => p !== f.path) : [...base, f.path];
+      return setMulti({ kind, paths, anchor: f.path });
+    }
+    setMulti({ kind, paths: [f.path], anchor: f.path });
+  };
+
+  const selectAll = () => {
+    const kind: ListKind = sel?.kind === "staged" ? "staged" : "unstaged";
+    const list = listOf(kind);
+    if (!list.length) return;
+    setMulti({ kind, paths: list.map((f) => f.path), anchor: list[0].path });
+  };
+
   /** A rename touches two paths; staging only the new one would leave the deletion behind. */
   const withOrig = (fs: FileChange[]) => fs.flatMap((f) => (f.orig_path ? [f.path, f.orig_path] : [f.path]));
   const stage = (paths: string[]) => run(tab.id, "Staging…", () => api.stage(path, paths), { quiet: true });
@@ -143,15 +181,17 @@ export function FilesView({ tab }: { tab: Tab }) {
     });
   };
 
-  const fileMenu = (e: React.MouseEvent, f: FileChange, kind: FileSel["kind"]) =>
-    openMenu(e, [
+  const fileMenu = (e: React.MouseEvent, f: FileChange, kind: FileSel["kind"]) => {
+    const fs = targets(f, kind);
+    const n = fs.length > 1 ? ` ${fs.length} files` : "";
+    return openMenu(e, [
       kind === "staged"
-        ? { label: "Unstage", onClick: () => unstage(withOrig([f])) }
-        : { label: "Stage", onClick: () => stage(withOrig([f])) },
-      ...(kind === "unstaged" ? [{ label: "Discard changes…", danger: true, onClick: () => discard([f]) }] : []),
+        ? { label: `Unstage${n}`, onClick: () => unstage(withOrig(fs)) }
+        : { label: `Stage${n}`, onClick: () => stage(withOrig(fs)) },
+      ...(kind === "unstaged" ? [{ label: `Discard changes${n}…`, danger: true, onClick: () => discard(fs) }] : []),
       { separator: true },
-      { label: "Copy path", onClick: () => a.copy(f.path) },
-      ...(f.untracked
+      { label: "Copy path", onClick: () => a.copy(fs.map((x) => x.path).join("\n")) },
+      ...(f.untracked || fs.length > 1
         ? []
         : [
             { separator: true },
@@ -159,17 +199,20 @@ export function FilesView({ tab }: { tab: Tab }) {
             { label: "Blame (who changed each line)…", onClick: () => useUi.setState({ fileHistory: { repo: tab.path!, file: f.path, mode: "blame" } }) },
           ]),
     ]);
+  };
 
   const row = (f: FileChange, kind: FileSel["kind"]) => {
     const b = badge(f, kind === "staged");
     const { dir, name } = splitPath(f.path);
-    const active = sel?.path === f.path && sel.kind === kind;
+    const picked = kind !== "conflict" && multi?.kind === kind && pickedPaths.has(f.path);
+    const active = picked || (sel?.path === f.path && sel.kind === kind && !(multi?.kind === kind && pickedPaths.size > 0));
     return (
       <li
         key={`${kind}:${f.path}`}
         className={`file-row${active ? " active" : ""}`}
-        onClick={() => select(f, kind)}
-        onDoubleClick={() => (kind === "staged" ? unstage(withOrig([f])) : kind === "unstaged" ? stage(withOrig([f])) : undefined)}
+        aria-selected={active}
+        onClick={(e) => clickRow(e, f, kind)}
+        onDoubleClick={() => (kind === "staged" ? unstage(withOrig(targets(f, kind))) : kind === "unstaged" ? stage(withOrig(targets(f, kind))) : undefined)}
         onContextMenu={(e) => fileMenu(e, f, kind)}
         title={f.orig_path ? `${f.orig_path} → ${f.path}` : f.path}
       >
@@ -185,7 +228,7 @@ export function FilesView({ tab }: { tab: Tab }) {
         ) : (
           <span className="row-actions">
             {kind === "unstaged" && (
-              <button className="icon-btn" title="Discard changes" aria-label="Discard changes" onClick={(e) => (e.stopPropagation(), discard([f]))}>
+              <button className="icon-btn" title="Discard changes" aria-label="Discard changes" onClick={(e) => (e.stopPropagation(), discard(targets(f, kind)))}>
                 <Icon name="undo" size={14} />
               </button>
             )}
@@ -193,7 +236,7 @@ export function FilesView({ tab }: { tab: Tab }) {
               className="icon-btn"
               title={kind === "staged" ? "Unstage" : "Stage"}
               aria-label={kind === "staged" ? "Unstage" : "Stage"}
-              onClick={(e) => (e.stopPropagation(), kind === "staged" ? unstage(withOrig([f])) : stage(withOrig([f])))}
+              onClick={(e) => (e.stopPropagation(), kind === "staged" ? unstage(withOrig(targets(f, kind))) : stage(withOrig(targets(f, kind))))}
             >
               <Icon name={kind === "staged" ? "x" : "plus"} size={14} />
             </button>
@@ -237,7 +280,21 @@ export function FilesView({ tab }: { tab: Tab }) {
           <input placeholder="Filter files…" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter files" />
         </div>
 
-        <div className="file-lists">
+        <div
+          className="file-lists"
+          tabIndex={0}
+          aria-label="Changed files. Ctrl+A selects all, Ctrl-click and Shift-click select several."
+          onKeyDown={(e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+              e.preventDefault();
+              selectAll();
+            } else if (e.key === "Escape" && multi) setMulti(null);
+            else if (e.key === "Enter" && multi && pickedPaths.size > 0) {
+              const fs = pickedFiles(multi.kind);
+              void (multi.kind === "staged" ? unstage(withOrig(fs)) : stage(withOrig(fs)));
+            }
+          }}
+        >
           {conflicts.length > 0 && (
             <section>
               <h3 className="list-title conflict-title">Conflicts <span className="count">{conflicts.length}</span></h3>
@@ -247,6 +304,11 @@ export function FilesView({ tab }: { tab: Tab }) {
           <section>
             <h3 className="list-title">
               Staged <span className="count">{staged.length === 0 ? "— nothing staged" : staged.length}</span>
+              {pickedFiles("staged").length > 1 && (
+                <button className="btn tiny primary" onClick={() => unstage(withOrig(pickedFiles("staged")))}>
+                  Unstage selected ({pickedFiles("staged").length})
+                </button>
+              )}
               {staged.length > 0 && (
                 <button className="btn tiny" onClick={() => run(tab.id, "Unstaging…", () => api.unstageAll(path), { quiet: true })}>
                   Unstage all
@@ -258,6 +320,11 @@ export function FilesView({ tab }: { tab: Tab }) {
           <section>
             <h3 className="list-title">
               Unstaged <span className="count">{unstaged.length === 0 ? "— none" : unstaged.length}</span>
+              {pickedFiles("unstaged").length > 1 && (
+                <button className="btn tiny primary" onClick={() => stage(withOrig(pickedFiles("unstaged")))}>
+                  Stage selected ({pickedFiles("unstaged").length})
+                </button>
+              )}
               {unstaged.length > 0 && (
                 <button className="btn tiny" onClick={() => run(tab.id, "Staging…", () => api.stageAll(path), { quiet: true })}>
                   Stage all
