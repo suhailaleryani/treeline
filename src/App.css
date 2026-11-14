@@ -779,3 +779,5 @@ body.toolbar-dragging, body.toolbar-dragging * { cursor: grabbing !important; }
 .set-star { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-s); }
 .set-star .btn { flex: none; }
 .set-star .btn .icon { color: var(--warn); }
+.set-row > select { flex: none; max-width: 60%; }
+label.set-row > span { white-space: nowrap; }

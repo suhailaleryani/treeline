@@ -114,7 +114,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           <p className="muted small">Installing closes the app and starts the new version.</p>
           <div className="row">
             <button className="btn primary" onClick={() => void install(upd.update)}>
-              <Icon name="down" size={14} /> Install update and restart
+              <Icon name="update" size={14} /> Install update and restart
             </button>
           </div>
         </>
@@ -154,7 +154,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
       <div className="set-body">
         {/* A waiting update comes first, so it is the first thing seen when the dialog opens from the status bar. */}
         {pending && (
-          <Section icon="down" title="Update available" highlight>
+          <Section icon="update" title="Update available" highlight>
             {updateBody}
           </Section>
         )}

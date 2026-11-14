@@ -40,7 +40,7 @@ export function StatusBar() {
           title={`Version ${update.version} is available — click to update`}
           onClick={() => useUi.setState({ settings: true })}
         >
-          <Icon name="down" size={11} />
+          <Icon name="update" size={12} />
           Update available: v{update.version}
         </button>
       )}
