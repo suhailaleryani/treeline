@@ -133,6 +133,39 @@ export function FilesView({ tab }: { tab: Tab }) {
     setMulti({ kind, paths: [f.path], anchor: f.path });
   };
 
+  // Drag selection: press on a row, move over others in the same list, release. Plain left button only,
+  // so Ctrl/Shift-click and the row buttons keep working as before.
+  const drag = useRef<{ kind: ListKind; anchor: string; moved: boolean } | null>(null);
+  const justDragged = useRef(false);
+  useEffect(() => {
+    const end = () => {
+      if (!drag.current) return;
+      // The click that follows a drag lands on the list itself; remember it so it does not clear the selection.
+      justDragged.current = drag.current.moved;
+      drag.current = null;
+      setTimeout(() => (justDragged.current = false), 0);
+    };
+    window.addEventListener("mouseup", end);
+    return () => window.removeEventListener("mouseup", end);
+  }, []);
+  const dragStart = (e: React.MouseEvent, f: FileChange, kind: FileSel["kind"]) => {
+    if (kind === "conflict" || e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey) return;
+    if ((e.target as HTMLElement).closest("button")) return;
+    drag.current = { kind, anchor: f.path, moved: false };
+  };
+  const dragOver = (f: FileChange, kind: FileSel["kind"]) => {
+    const dr = drag.current;
+    if (!dr || dr.kind !== kind || (!dr.moved && f.path === dr.anchor)) return;
+    const list = listOf(dr.kind);
+    const a = list.findIndex((x) => x.path === dr.anchor);
+    const b = list.findIndex((x) => x.path === f.path);
+    if (a < 0 || b < 0) return;
+    dr.moved = true;
+    const [lo, hi] = a < b ? [a, b] : [b, a];
+    select(list[a], kind);
+    setMulti({ kind, anchor: dr.anchor, paths: list.slice(lo, hi + 1).map((x) => x.path) });
+  };
+
   const selectAll = () => {
     const kind: ListKind = multi?.kind ?? (sel?.kind === "staged" ? "staged" : "unstaged");
     const list = listOf(kind);
@@ -212,9 +245,12 @@ export function FilesView({ tab }: { tab: Tab }) {
     return (
       <li
         key={`${kind}:${f.path}`}
+        data-row={`${kind}:${f.path}`}
         className={`file-row${active ? " active" : ""}`}
         aria-selected={active}
         onClick={(e) => clickRow(e, f, kind)}
+        onMouseDown={(e) => dragStart(e, f, kind)}
+        onMouseEnter={() => dragOver(f, kind)}
         onDoubleClick={() => (kind === "staged" ? unstage(withOrig(targets(f, kind))) : kind === "unstaged" ? stage(withOrig(targets(f, kind))) : undefined)}
         onContextMenu={(e) => fileMenu(e, f, kind)}
         title={f.orig_path ? `${f.orig_path} → ${f.path}` : f.path}
@@ -251,6 +287,40 @@ export function FilesView({ tab }: { tab: Tab }) {
 
   // The right pane follows the selection: a file that is not selected any more (or never was) shows nothing.
   const shown = sel && (sel.kind === "conflict" || (multi?.kind === sel.kind && pickedPaths.has(sel.path))) ? sel : null;
+
+  /** Arrow keys move through the rows in display order (conflicts, staged, unstaged); Shift extends the selection within a list. */
+  const arrowNav = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const order = [
+      ...conflicts.map((f) => ({ f, kind: "conflict" as FileSel["kind"] })),
+      ...staged.map((f) => ({ f, kind: "staged" as FileSel["kind"] })),
+      ...unstaged.map((f) => ({ f, kind: "unstaged" as FileSel["kind"] })),
+    ];
+    if (!order.length) return;
+    const dir = e.key === "ArrowDown" ? 1 : -1;
+    const cur = shown ? order.findIndex((r) => r.kind === shown.kind && r.f.path === shown.path) : -1;
+    const next = cur < 0 ? (dir > 0 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, cur + dir));
+    const r = order[next];
+    if (e.shiftKey && cur >= 0 && r.kind !== "conflict" && order[cur].kind === r.kind && multi?.kind === r.kind) {
+      const list = listOf(r.kind as ListKind);
+      const a = list.findIndex((x) => x.path === multi.anchor);
+      const b = list.findIndex((x) => x.path === r.f.path);
+      if (a >= 0 && b >= 0) {
+        const [lo, hi] = a < b ? [a, b] : [b, a];
+        select(r.f, r.kind);
+        setMulti({ kind: r.kind as ListKind, anchor: multi.anchor, paths: list.slice(lo, hi + 1).map((x) => x.path) });
+      }
+    } else if (e.shiftKey && cur >= 0 && order[cur].kind !== r.kind) {
+      return; // Shift never reaches into another list.
+    } else {
+      select(r.f, r.kind);
+      setMulti(r.kind === "conflict" ? null : { kind: r.kind as ListKind, paths: [r.f.path], anchor: r.f.path });
+    }
+    requestAnimationFrame(() => {
+      for (const li of e.currentTarget.querySelectorAll<HTMLElement>("[data-row]")) {
+        if (li.dataset.row === `${r.kind}:${r.f.path}`) li.scrollIntoView({ block: "nearest" });
+      }
+    });
+  };
 
   const state = status?.state;
   const stateLabel = { merge: "Merge", rebase: "Rebase", "cherry-pick": "Cherry-pick", revert: "Revert" }[state ?? "merge"];
@@ -292,12 +362,16 @@ export function FilesView({ tab }: { tab: Tab }) {
           aria-label="Changed files. Ctrl+A selects all, Ctrl-click and Shift-click select several."
           onClick={(e) => {
             // A click on empty space (not a row or button) clears the selection.
+            if (justDragged.current) return;
             if (!(e.target as HTMLElement).closest("li, button")) setMulti(null);
           }}
           onKeyDown={(e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
               e.preventDefault();
               selectAll();
+            } else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              e.preventDefault();
+              arrowNav(e);
             } else if (e.key === "Escape" && multi) setMulti(null);
             else if (e.key === "Enter" && multi && pickedPaths.size > 0) {
               const fs = pickedFiles(multi.kind);
