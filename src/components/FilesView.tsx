@@ -134,9 +134,11 @@ export function FilesView({ tab }: { tab: Tab }) {
   };
 
   const selectAll = () => {
-    const kind: ListKind = sel?.kind === "staged" ? "staged" : "unstaged";
+    const kind: ListKind = multi?.kind ?? (sel?.kind === "staged" ? "staged" : "unstaged");
     const list = listOf(kind);
     if (!list.length) return;
+    // Ctrl+A again, with everything already selected, deselects.
+    if (multi?.kind === kind && pickedFiles(kind).length === list.length) return setMulti(null);
     setMulti({ kind, paths: list.map((f) => f.path), anchor: list[0].path });
   };
 
@@ -205,7 +207,8 @@ export function FilesView({ tab }: { tab: Tab }) {
     const b = badge(f, kind === "staged");
     const { dir, name } = splitPath(f.path);
     const picked = kind !== "conflict" && multi?.kind === kind && pickedPaths.has(f.path);
-    const active = picked || (sel?.path === f.path && sel.kind === kind && !(multi?.kind === kind && pickedPaths.size > 0));
+    // Only selected rows are highlighted; the file whose diff is shown (`sel`) is not, once the selection is cleared.
+    const active = picked || (kind === "conflict" && sel?.kind === "conflict" && sel.path === f.path);
     return (
       <li
         key={`${kind}:${f.path}`}
@@ -246,6 +249,9 @@ export function FilesView({ tab }: { tab: Tab }) {
     );
   };
 
+  // The right pane follows the selection: a file that is not selected any more (or never was) shows nothing.
+  const shown = sel && (sel.kind === "conflict" || (multi?.kind === sel.kind && pickedPaths.has(sel.path))) ? sel : null;
+
   const state = status?.state;
   const stateLabel = { merge: "Merge", rebase: "Rebase", "cherry-pick": "Cherry-pick", revert: "Revert" }[state ?? "merge"];
 
@@ -284,6 +290,10 @@ export function FilesView({ tab }: { tab: Tab }) {
           className="file-lists"
           tabIndex={0}
           aria-label="Changed files. Ctrl+A selects all, Ctrl-click and Shift-click select several."
+          onClick={(e) => {
+            // A click on empty space (not a row or button) clears the selection.
+            if (!(e.target as HTMLElement).closest("li, button")) setMulti(null);
+          }}
           onKeyDown={(e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
               e.preventDefault();
@@ -304,8 +314,8 @@ export function FilesView({ tab }: { tab: Tab }) {
           <section>
             <h3 className="list-title">
               Staged <span className="count">{staged.length === 0 ? "— nothing staged" : staged.length}</span>
-              {pickedFiles("staged").length > 1 && (
-                <button className="btn tiny primary" onClick={() => unstage(withOrig(pickedFiles("staged")))}>
+              {pickedFiles("staged").length > 0 && (
+                <button className="btn tiny" onClick={() => unstage(withOrig(pickedFiles("staged")))}>
                   Unstage selected ({pickedFiles("staged").length})
                 </button>
               )}
@@ -320,8 +330,8 @@ export function FilesView({ tab }: { tab: Tab }) {
           <section>
             <h3 className="list-title">
               Unstaged <span className="count">{unstaged.length === 0 ? "— none" : unstaged.length}</span>
-              {pickedFiles("unstaged").length > 1 && (
-                <button className="btn tiny primary" onClick={() => stage(withOrig(pickedFiles("unstaged")))}>
+              {pickedFiles("unstaged").length > 0 && (
+                <button className="btn tiny" onClick={() => stage(withOrig(pickedFiles("unstaged")))}>
                   Stage selected ({pickedFiles("unstaged").length})
                 </button>
               )}
@@ -345,16 +355,22 @@ export function FilesView({ tab }: { tab: Tab }) {
       <div className="splitter" onMouseDown={onSplit} role="separator" aria-orientation="vertical" />
 
       <div className="files-right">
-        {sel?.kind === "conflict" ? (
-          <ConflictResolver key={sel.path} tab={tab} file={sel.path} />
-        ) : sel ? (
+        {shown?.kind === "conflict" ? (
+          <ConflictResolver key={shown.path} tab={tab} file={shown.path} />
+        ) : shown ? (
           <DiffView
             text={diffText}
             loading={diffLoading}
-            fileLabel={sel.path}
-            actions={sel.untracked ? [] : sel.kind === "staged" ? ["unstage"] : ["stage", "discard"]}
+            fileLabel={shown.path}
+            actions={shown.untracked ? [] : shown.kind === "staged" ? ["unstage"] : ["stage", "discard"]}
             onPatch={onPatch}
           />
+        ) : files.length > 0 ? (
+          <div className="empty">
+            <Icon name="check" size={28} />
+            <p>No file selected.</p>
+            <p className="muted small">Click a file to see its changes.</p>
+          </div>
         ) : (
           <div className="empty">
             <Icon name="check" size={28} />

@@ -308,6 +308,8 @@ details[open] > summary > .icon:first-child { transform: rotate(90deg); }
 .file-lists { flex: 1 1 auto; overflow: auto; min-height: 140px; }
 .list-title { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--bg-2); position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .list-title .btn { margin-left: auto; text-transform: none; letter-spacing: 0; }
+/* Buttons after the first sit right next to it instead of splitting the free space. */
+.list-title .btn ~ .btn { margin-left: 0; }
 .conflict-title { color: var(--danger); }
 .file-row { position: relative; display: flex; align-items: center; gap: 8px; padding: 2px 8px 2px 12px; cursor: default; min-height: 24px; }
 .file-row:hover { background: var(--bg-3); }
