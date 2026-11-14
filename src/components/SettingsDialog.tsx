@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Modal } from "./Modal";
 import { Icon, type IconName } from "./Icon";
+import { GitHubStar } from "./GitHubStar";
 import { useUi } from "../uiStore";
 import { useApp } from "../store";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -234,10 +235,15 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
               <button className="btn tiny" onClick={() => void openGuide().catch((e) => useApp.getState().notify("error", errorMessage(e)))}>
                 User guide
               </button>
-              <button className="btn tiny" onClick={() => void api.openProjectPage().catch((e) => useApp.getState().notify("error", errorMessage(e)))}>
-                GitHub
-              </button>
             </span>
+          </div>
+          <div className="set-star">
+            <span className="small">
+              <strong>Enjoying Treeline?</strong> <span className="muted">A star on GitHub helps other people find it, and it is free.</span>
+            </span>
+            <button className="btn" onClick={() => void api.openProjectPage().catch((e) => useApp.getState().notify("error", errorMessage(e)))}>
+              <GitHubStar size={14} /> Star on GitHub
+            </button>
           </div>
           {!pending && updateBody}
         </Section>
