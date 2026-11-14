@@ -750,3 +750,7 @@ body.toolbar-dragging, body.toolbar-dragging * { cursor: grabbing !important; }
 .terminal-body { flex: 1; min-height: 0; min-width: 0; overflow: hidden; padding: 4px 0 4px 8px; }
 .terminal-body .xterm { height: 100%; }
 .terminal-body .xterm-viewport { overflow-y: scroll; overscroll-behavior: contain; }
+
+.version-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 0 4px; font: inherit; cursor: pointer; border-radius: var(--r-xs); }
+.version-btn:hover { color: var(--text); background: var(--bg-3); }
+.version-btn:hover .icon { color: var(--warn, #d9a400); }

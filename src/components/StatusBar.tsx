@@ -1,4 +1,6 @@
+import { api, errorMessage } from "../api";
 import { useAppVersion } from "../hooks";
+import { Icon } from "./Icon";
 import { useApp } from "../store";
 
 export function StatusBar() {
@@ -28,9 +30,15 @@ export function StatusBar() {
       </span>
       <span className="muted ellipsis">{tab?.path ?? ""}</span>
       {version && (
-        <span className="muted" title="Treeline version">
+        <button
+          className="version-btn muted"
+          aria-label={`Treeline version ${version}. Star Treeline on GitHub`}
+          title={`Treeline v${version}\nCreated by suhailaleryani\nStar it on GitHub: suhailaleryani/treeline`}
+          onClick={() => void api.openProjectPage().catch((e) => useApp.getState().notify("error", errorMessage(e)))}
+        >
           v{version}
-        </span>
+          <Icon name="star" size={11} />
+        </button>
       )}
     </footer>
   );

@@ -182,6 +182,7 @@ export const api = {
   // OS
   reveal: (path: string) => invoke<void>("reveal_in_file_manager", { path }),
   terminal: (path: string) => invoke<void>("open_terminal", { path }),
+  openProjectPage: () => invoke<void>("open_project_page"),
 
   // custom toolbar buttons (the backend keeps the commands; the page only names a button by its id)
   buttons: (path: string, tabId: string) => invoke<CustomButton[]>("list_buttons", { path, tabId }),

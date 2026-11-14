@@ -142,6 +142,7 @@ pub fn run() {
             ops::remove_lock_file,
             ops::reveal_in_file_manager,
             ops::open_terminal,
+            ops::open_project_page,
             buttons::list_buttons,
             buttons::save_button,
             buttons::delete_button,

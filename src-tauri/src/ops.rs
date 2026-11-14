@@ -1835,6 +1835,21 @@ pub fn reveal_in_file_manager(path: String) -> Result<(), String> {
     cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
+/// Opens Treeline's own GitHub page in the default browser. The address is fixed here and never comes from the
+/// front end, so this command cannot be used to open anything else.
+#[tauri::command]
+pub fn open_project_page() -> Result<(), String> {
+    const URL: &str = "https://github.com/suhailaleryani/treeline";
+    #[cfg(target_os = "windows")]
+    let mut cmd = std::process::Command::new("explorer");
+    #[cfg(target_os = "macos")]
+    let mut cmd = std::process::Command::new("open");
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut cmd = std::process::Command::new("xdg-open");
+    cmd.arg(URL);
+    cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub fn open_terminal(path: String) -> Result<(), String> {
     ensure_allowed(&path)?;
