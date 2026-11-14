@@ -1,5 +1,12 @@
 # Treeline
 
+[![Latest release](https://img.shields.io/github/v/release/suhailaleryani/treeline)](https://github.com/suhailaleryani/treeline/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/suhailaleryani/treeline)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-blue)
+[![Website](https://img.shields.io/badge/website-suhailaleryani.github.io%2Ftreeline-informational)](https://suhailaleryani.github.io/treeline/)
+
+**A fast, free desktop Git GUI for Windows, macOS and Linux. Works with any Git remote, with no sign-in.** [Download](https://github.com/suhailaleryani/treeline/releases/latest)
+
 A fast desktop Git client with styled interface. It talks to the system `git` CLI, so it works
 with **any Git remote** (self-hosted, GitLab, Gitea, Azure DevOps, a bare repo on a file share …). There are
 no provider integrations and no sign-in.

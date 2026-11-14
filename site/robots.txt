@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://suhailaleryani.github.io/treeline/sitemap.xml
