@@ -19,53 +19,65 @@ export function Home() {
   const open = (path: string) => openRepo(path).catch((e) => onError(errorMessage(e)));
   const shownRecent = visibleRecent(recent, bookmarks);
   return (
+    // The whole page scrolls (so the scrollbar sits at the window edge). The logo and buttons stick to the top and the
+    // shortcut hint to the bottom; the bookmarks and recent lists pass underneath them.
     <div className="home">
-      <div className="home-hero">
-        <div className="logo" aria-hidden="true">
-          <Icon name="branch" size={30} />
+      <div className="home-page">
+        <div className="home-top">
+          <div className="home-inner">
+            <div className="home-hero">
+              <div className="logo" aria-hidden="true">
+                <Icon name="branch" size={30} />
+              </div>
+              <h1>Treeline</h1>
+              <p className="muted">A fast Git client for any provider. Open a repository to get started.</p>
+              <div className="row center">
+                <button className="btn primary big" onClick={() => pickAndOpenRepo(openRepo, onError)}>
+                  <Icon name="folder" /> Open repository…
+                </button>
+                <button className="btn big" onClick={() => useUi.setState({ clone: true })}>
+                  <Icon name="cloud" /> Clone…
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <h1>Treeline</h1>
-        <p className="muted">A fast Git client for any provider. Open a repository to get started.</p>
-        <div className="row center">
-          <button className="btn primary big" onClick={() => pickAndOpenRepo(openRepo, onError)}>
-            <Icon name="folder" /> Open repository…
-          </button>
-          <button className="btn big" onClick={() => useUi.setState({ clone: true })}>
-            <Icon name="cloud" /> Clone…
-          </button>
+
+        <div className="home-inner home-lists">
+          {bookmarks.length > 0 && (
+            <section className="home-section">
+              <h2>Bookmarks</h2>
+              <div className="cards">
+                {bookmarks.map((b) => (
+                  <RepoCard key={b.id} name={b.name} path={b.path} starred onOpen={open} onRemove={() => removeBookmark(b.id)} removeLabel={`Remove bookmark ${b.name}`} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {shownRecent.length > 0 && (
+            <section className="home-section">
+              <h2>Recent</h2>
+              <div className="cards">
+                {shownRecent.map((r) => (
+                  <RepoCard key={r.path} name={r.name} path={r.path} onOpen={open} onRemove={() => removeRecent(r.path)} removeLabel={`Remove ${r.name} from Recent`} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {bookmarks.length === 0 && (
+            <p className="muted small center-text">Open a repository and press ★ to bookmark it for quick access.</p>
+          )}
+        </div>
+
+        <div className="home-bottom">
+          <p className="muted small hint center-text">
+            <Shortcut spec="F1" /> user guide · <Shortcut spec="Mod+K" /> command palette · <Shortcut spec="Mod+T" /> new tab ·{" "}
+            <Shortcut spec="Mod+W" /> close tab · <Shortcut spec="Ctrl+Tab" /> next tab · <Shortcut spec="Mod+O" /> open
+          </p>
         </div>
       </div>
-
-      {bookmarks.length > 0 && (
-        <section className="home-section">
-          <h2>Bookmarks</h2>
-          <div className="cards">
-            {bookmarks.map((b) => (
-              <RepoCard key={b.id} name={b.name} path={b.path} starred onOpen={open} onRemove={() => removeBookmark(b.id)} removeLabel={`Remove bookmark ${b.name}`} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {shownRecent.length > 0 && (
-        <section className="home-section">
-          <h2>Recent</h2>
-          <div className="cards">
-            {shownRecent.map((r) => (
-              <RepoCard key={r.path} name={r.name} path={r.path} onOpen={open} onRemove={() => removeRecent(r.path)} removeLabel={`Remove ${r.name} from Recent`} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {bookmarks.length === 0 && (
-        <p className="muted small center-text">Open a repository and press ★ to bookmark it for quick access.</p>
-      )}
-
-      <p className="muted small hint center-text">
-        <Shortcut spec="F1" /> user guide · <Shortcut spec="Mod+K" /> command palette · <Shortcut spec="Mod+T" /> new tab ·{" "}
-        <Shortcut spec="Mod+W" /> close tab · <Shortcut spec="Ctrl+Tab" /> next tab · <Shortcut spec="Mod+O" /> open
-      </p>
     </div>
   );
 }
