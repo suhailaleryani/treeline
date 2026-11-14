@@ -68,5 +68,5 @@ Please don't post security issues publicly. Contact the maintainers privately fi
 
 ## Licence
 
-No licence has been chosen yet; the maintainers need to add one before outside contributions can be accepted. Please ask
-before sending substantial work.
+Treeline is released under the [MIT License](LICENSE). By contributing, you agree that your contributions are licensed
+under the same terms.

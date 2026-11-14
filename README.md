@@ -268,5 +268,4 @@ src-tauri/src/
 
 ## License
 
-**Not chosen yet.** Until a licence file is added, the code is not licensed for reuse. Decide on one (for example MIT or
-Apache-2.0) before accepting outside contributions or publishing the repository.
+Treeline is released under the [MIT License](LICENSE).
