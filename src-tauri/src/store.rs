@@ -2,7 +2,48 @@
 
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
+
+/// Whether this window owns the saved session. The first Treeline window takes a lock on `session.lock` and keeps it
+/// until it exits; every window started while it runs (the "New window" command, or starting the program again)
+/// finds the lock taken, so it starts empty and never overwrites the saved session.
+static SESSION_OWNER: AtomicBool = AtomicBool::new(true);
+static SESSION_LOCK: Mutex<Option<fs::File>> = Mutex::new(None);
+
+/// Tries to become the session owner. Runs once at start-up. If the lock cannot be tried for any other reason than
+/// "someone else holds it", this window stays the owner, which is how Treeline behaved before windows were separated.
+pub fn claim_session(app: &AppHandle) {
+    let Ok(dir) = app.path().app_config_dir() else { return };
+    let _ = fs::create_dir_all(&dir);
+    let Ok(file) = fs::OpenOptions::new().create(true).write(true).truncate(false).open(dir.join("session.lock")) else { return };
+    match file.try_lock() {
+        Ok(()) => *SESSION_LOCK.lock().unwrap() = Some(file),
+        Err(fs::TryLockError::WouldBlock) => SESSION_OWNER.store(false, Ordering::Relaxed),
+        Err(_) => {}
+    }
+}
+
+/// Starts another Treeline window: a new program process, so the windows share nothing but the files on disk.
+#[tauri::command]
+pub fn open_new_window() -> Result<(), String> {
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    std::process::Command::new(exe).spawn().map(|_| ()).map_err(|e| e.to_string())
+}
+
+/// What another window gets from the saved session: the bookmarks, recent list, toolbar and theme, but no open tabs,
+/// so it is a new start. Anything unreadable is passed on unchanged (the page copes with that).
+fn without_open_tabs(text: &str) -> String {
+    let Ok(mut state) = serde_json::from_str::<serde_json::Value>(text.trim_start_matches('\u{feff}')) else {
+        return text.to_string();
+    };
+    if let Some(map) = state.as_object_mut() {
+        map.remove("tabs");
+        map.remove("activeId");
+    }
+    state.to_string()
+}
 
 fn state_path(app: &AppHandle) -> Result<PathBuf, String> {
     let dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
@@ -14,6 +55,7 @@ fn state_path(app: &AppHandle) -> Result<PathBuf, String> {
 pub fn load_state(app: AppHandle) -> Result<Option<String>, String> {
     let path = state_path(&app)?;
     match fs::read_to_string(&path) {
+        Ok(text) if !SESSION_OWNER.load(Ordering::Relaxed) => Ok(Some(without_open_tabs(&text))),
         Ok(text) => Ok(Some(text)),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e.to_string()),
@@ -39,6 +81,9 @@ pub(crate) fn without_unopened_folders(json: &str) -> Result<String, String> {
 
 #[tauri::command]
 pub fn save_state(app: AppHandle, json: String) -> Result<(), String> {
+    if !SESSION_OWNER.load(Ordering::Relaxed) {
+        return Ok(()); // another window owns the saved session; this one must not overwrite it
+    }
     let json = without_unopened_folders(&json)?;
     let path = state_path(&app)?;
     // Write then rename so a crash can never leave a half-written state file.
@@ -50,6 +95,35 @@ pub fn save_state(app: AppHandle, json: String) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn another_window_starts_without_tabs_but_keeps_the_rest() {
+        let state = serde_json::json!({
+            "tabs": [{ "id": "1", "path": "C:/a", "name": "a" }],
+            "activeId": "1",
+            "bookmarks": [{ "id": "b1", "path": "C:/a" }],
+            "recent": [{ "path": "C:/a", "name": "a" }],
+            "theme": "light"
+        });
+        let fresh: serde_json::Value = serde_json::from_str(&without_open_tabs(&state.to_string())).unwrap();
+        assert!(fresh.get("tabs").is_none() && fresh.get("activeId").is_none());
+        assert_eq!(fresh["theme"], "light");
+        assert_eq!(fresh["bookmarks"].as_array().unwrap().len(), 1);
+        assert_eq!(fresh["recent"].as_array().unwrap().len(), 1);
+        assert_eq!(without_open_tabs("not json"), "not json", "unreadable text is passed on unchanged");
+    }
+
+    #[test]
+    fn only_one_handle_can_own_the_session_lock() {
+        let path = std::env::temp_dir().join(format!("treeline-lock-{}", std::process::id()));
+        let open = || std::fs::OpenOptions::new().create(true).write(true).truncate(false).open(&path).unwrap();
+        let first = open();
+        first.try_lock().expect("the first handle gets the lock");
+        assert!(matches!(open().try_lock(), Err(std::fs::TryLockError::WouldBlock)), "the second one is turned away");
+        drop(first);
+        assert!(open().try_lock().is_ok(), "the lock is free again once the owner is gone");
+        let _ = std::fs::remove_file(&path);
+    }
 
     #[test]
     fn the_page_cannot_plant_folders_in_the_saved_state() {

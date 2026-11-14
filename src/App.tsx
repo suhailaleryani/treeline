@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { api } from "./api";
+import { api, errorMessage } from "./api";
 import { UPDATE_CHECK_INTERVAL_MS, checkForUpdate, createUpdateWatch } from "./updater";
 import { createAutoFetch, startAutoFetchTimer } from "./lib/autoFetch";
 import { useApp } from "./store";
@@ -127,7 +127,8 @@ export default function App() {
       }
       const app = useApp.getState();
       const key = e.key.toLowerCase();
-      if (key === "t") app.newTab();
+      if (key === "n" && e.shiftKey) void api.newWindow().catch((err) => app.notify("error", errorMessage(err)));
+      else if (key === "t") app.newTab();
       else if (key === "w" && app.activeId) app.closeTab(app.activeId);
       else if (key === "o") void pickAndOpenRepo(app.openRepo, (m) => app.notify("error", m));
       else if (key === "k" || (key === "p" && e.shiftKey)) app.setPalette(!app.paletteOpen);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repoActions } from "../actions";
 import { openButtonDialog, runButton, useButtons } from "../buttons";
-import { errorMessage } from "../api";
+import { api, errorMessage } from "../api";
 import { useApp } from "../store";
 import { useUi } from "../uiStore";
 import { GUIDE, openGuide } from "../guide";
@@ -33,6 +33,7 @@ function Palette({ onClone }: { onClone: () => void }) {
       { id: "open", label: "Open repository…", hint: formatShortcut("Mod+O"), run: () => void pickAndOpenRepo(s.openRepo, (m) => s.notify("error", m)) },
       { id: "clone", label: "Clone repository…", run: onClone },
       { id: "settings", label: "Settings… (Git program)", run: () => useUi.setState({ settings: true }) },
+      { id: "window", label: "New window (starts empty)", hint: formatShortcut("Mod+Shift+N"), run: () => void api.newWindow().catch((e) => s.notify("error", errorMessage(e))) },
       { id: "tab", label: "New tab", hint: formatShortcut("Mod+T"), run: s.newTab },
       { id: "guide", label: "Open the user guide", hint: "F1", run: () => void openGuide() },
       { id: "guide-errors", label: "Guide: when something goes wrong", run: () => void openGuide(GUIDE.errors) },

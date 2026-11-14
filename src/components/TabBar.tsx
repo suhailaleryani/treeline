@@ -97,6 +97,20 @@ export function TabBar() {
       );
     }
     items.push({ label: "Close tab", onClick: () => closeTab(id) });
+    // A repository and the submodule tabs opened from it close together.
+    const all = useApp.getState().tabs;
+    const root = tab ? groupRoot(all, tab) : id;
+    const members = all.filter((t) => t.id === root || t.parentId === root);
+    if (members.length > 1) {
+      items.push({
+        label: root === id ? `Close tab and its submodules (${members.length - 1})` : `Close the repository and all its submodules (${members.length})`,
+        onClick: () => {
+          // Submodules first, then the repository, so none of them is left behind as a stray tab.
+          for (const t of members.filter((m) => m.id !== root)) closeTab(t.id);
+          closeTab(root);
+        },
+      });
+    }
     openMenu(e, items);
   };
 

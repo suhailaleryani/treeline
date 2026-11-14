@@ -63,6 +63,7 @@ pub fn run() {
         .manage(watcher::WatchState::default())
         .manage(terminal::TerminalState::default())
         .setup(|app| {
+            store::claim_session(app.handle());
             store::apply_saved_settings(app.handle());
             store::load_trusted_folders(app.handle());
             #[cfg(target_os = "macos")]
@@ -151,6 +152,7 @@ pub fn run() {
             buttons::run_button,
             store::load_state,
             store::save_state,
+            store::open_new_window,
             watcher::watch_repo,
             watcher::unwatch_repo,
             terminal::term_open,
