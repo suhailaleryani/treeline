@@ -218,11 +218,11 @@ export function FilesView({ tab }: { tab: Tab }) {
   };
 
   /** Opens the whole repository in the code editor chosen in Settings, with these files open. */
-  const openEditor = (fs: FileChange[]) => {
+  const openEditor = (fs: FileChange[], line?: number) => {
     const deleted = (f: FileChange) => (f.index === "D" || f.worktree === "D") && !f.untracked;
     const paths = fs.filter((f) => !deleted(f) && !f.path.endsWith("/")).map((f) => f.path);
     if (!paths.length) return notify("error", "These files no longer exist in the working folder.");
-    api.openInEditor(path, paths, loadEditor()).catch((e) => notify("error", errorMessage(e)));
+    api.openInEditor(path, paths, loadEditor(), line).catch((e) => notify("error", errorMessage(e)));
   };
 
   const fileMenu = (e: React.MouseEvent, f: FileChange, kind: FileSel["kind"]) => {
@@ -481,6 +481,7 @@ export function FilesView({ tab }: { tab: Tab }) {
                     fileLabel={it.path}
                     actions={multi!.kind === "staged" ? ["unstage"] : multiFiles.find((f) => f.path === it.path)?.untracked ? [] : ["stage", "discard"]}
                     onPatch={onPatch}
+                    onOpenLine={(_, n) => openEditor(files.filter((f) => f.path === it.path), n)}
                   />
                 ))
               )}
@@ -516,6 +517,7 @@ export function FilesView({ tab }: { tab: Tab }) {
                 fileLabel={shown.path}
                 actions={shown.untracked ? [] : shown.kind === "staged" ? ["unstage"] : ["stage", "discard"]}
                 onPatch={onPatch}
+                onOpenLine={(_, n) => openEditor(files.filter((f) => f.path === shown.path), n)}
               />
             </div>
           </div>

@@ -311,6 +311,10 @@ remembered.
   opens the file as it is in your working folder now, not as it was in that commit. In the file history dialog, the code icon at the bottom does the same, and while you are looking at
   **File at this commit** or **File before it**, the code-and-clock icon next to it opens that version as a read-only
   copy (named like `app@abc1234.ts`) in your computer's temporary folder. Your working folder is not touched.
+* **Open at a line:** click a line number in a diff, in **File at this commit** or **File before it**, or in Blame to open that
+  exact line in your editor. In a commit's diff, a number on the new side opens the file as it is in that commit, and a number
+  on the old side opens it as it was before; in the file status view it opens your working copy. VS Code and its relatives,
+  Sublime Text, Zed, the JetBrains editors and Notepad++ jump to the line; the system default program opens the file only.
 
 ### 5.2 Stage and unstage
 

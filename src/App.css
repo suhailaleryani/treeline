@@ -394,6 +394,10 @@ body.resizing .splitter::after { background: var(--accent); }
 .lines.split td.blank { background: var(--bg-2); }
 .lines.split td.picked { background: var(--accent-soft); }
 .lines.split td.num + td.code + td.num { border-left: 1px solid var(--border); }
+/* Line numbers that open the line in the code editor. */
+.openable { cursor: pointer; }
+.openable:hover { color: var(--accent); text-decoration: underline; opacity: 1; }
+button.blame-no { background: none; border: 0; padding: 0 10px 0 0; font: inherit; }
 .diff-more { padding: 12px; text-align: center; color: var(--muted); font-family: inherit; }
 
 /* History */

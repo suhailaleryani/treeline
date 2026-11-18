@@ -13,6 +13,12 @@ interface Props {
   onPatch?: (kind: PatchKind, patch: string) => void;
   loading?: boolean;
   fileLabel?: string;
+  /**
+   * Makes the line numbers clickable: opens that line in a code editor. `side` is "new" for the numbers of the
+   * file after the change and "old" for the file before it (only when `openOld` is set).
+   */
+  onOpenLine?: (side: "old" | "new", line: number) => void;
+  openOld?: boolean;
 }
 
 const MAX_LINES = 4000;
@@ -27,7 +33,18 @@ function loadSplit(): boolean {
 }
 const LABEL: Record<PatchKind, string> = { stage: "Stage", unstage: "Unstage", discard: "Discard" };
 
-export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Props) {
+export function DiffView({ text, actions = [], onPatch, loading, fileLabel, onOpenLine, openOld }: Props) {
+  /** Props for a line-number cell that opens the line in the editor, or none when that is not offered. */
+  const opener = (side: "old" | "new", n: number | null) =>
+    onOpenLine && n !== null && (side === "new" || openOld)
+      ? {
+          title: `Open line ${n} in your code editor`,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onOpenLine(side, n);
+          },
+        }
+      : {};
   const diff = useMemo(() => parseDiff(text), [text]);
   const stats = useMemo(() => countChanges(diff), [diff]);
   // selected line keys: "hunk:line"
@@ -138,10 +155,12 @@ export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Pr
                         const c = row[side];
                         if (!c) return [<td key="n" className="num" />, <td key="c" className="code blank" />];
                         const { line, idx } = c;
+                        const no = side === "left" ? line.oldNo : line.newNo;
+                        const o = opener(side === "left" ? "old" : "new", no);
                         const on = sel.has(`${hi}:${idx}`);
                         const pickable = selectable && isChange(line);
                         return [
-                          <td key="n" className={`num ${line.type}${on ? " picked" : ""}`}>{(side === "left" ? line.oldNo : line.newNo) ?? ""}</td>,
+                          <td key="n" {...o} className={`num ${line.type}${on ? " picked" : ""}${o.onClick ? " openable" : ""}`}>{no ?? ""}</td>,
                           <td
                             key="c"
                             className={`code ${line.type}${on ? " picked" : ""}`}
@@ -177,8 +196,8 @@ export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Pr
                             {selectable && isChange(l) && <input type="checkbox" tabIndex={-1} readOnly checked={on} aria-label="Select line" />}
                           </td>
                         )}
-                        <td className="num">{l.oldNo ?? ""}</td>
-                        <td className="num">{l.newNo ?? ""}</td>
+                        <td {...opener("old", l.oldNo)} className={`num${opener("old", l.oldNo).onClick ? " openable" : ""}`}>{l.oldNo ?? ""}</td>
+                        <td {...opener("new", l.newNo)} className={`num${opener("new", l.newNo).onClick ? " openable" : ""}`}>{l.newNo ?? ""}</td>
                         <td className="sign">{l.type === "add" ? "+" : l.type === "del" ? "−" : ""}</td>
                         <td className="code">{l.text || " "}</td>
                       </tr>

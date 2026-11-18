@@ -493,7 +493,7 @@ function WipDetailPane({ tab }: { tab: Tab }) {
       </div>
       <div className="splitter" onMouseDown={onSplit} role="separator" aria-orientation="vertical" />
       <div className="detail-right">
-        {entry ? <DiffView text={diff} fileLabel={entry.path} /> : <div className="empty">No uncommitted changes.</div>}
+        {entry ? <DiffView text={diff} fileLabel={entry.path} onOpenLine={(_, n) => void api.openInEditor(path, [entry.path], loadEditor(), n).catch((e) => notify("error", errorMessage(e)))} /> : <div className="empty">No uncommitted changes.</div>}
       </div>
     </div>
   );
@@ -670,7 +670,18 @@ function CommitDetailPane({
       </div>
       <div className="splitter" onMouseDown={onSplit} role="separator" aria-orientation="vertical" />
       <div className="detail-right">
-        {file ? <DiffView text={diff} fileLabel={file.path} /> : <div className="empty">No file changes in this commit.</div>}
+        {file ? (
+          <DiffView
+            text={diff}
+            fileLabel={file.path}
+            openOld={!!parent}
+            onOpenLine={(side, n) => {
+              // "new" lines are in this commit; "old" lines are in what it is compared with, under the old name if renamed.
+              const rev = side === "new" ? sha : parent;
+              if (rev) void api.openRevisionInEditor(path, rev, side === "new" ? file.path : (file.old_path ?? file.path), loadEditor(), n).catch((e) => notify("error", errorMessage(e)));
+            }}
+          />
+        ) : <div className="empty">No file changes in this commit.</div>}
       </div>
     </div>
   );

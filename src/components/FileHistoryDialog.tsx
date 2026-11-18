@@ -113,6 +113,11 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
   // highlight.js escapes the file's text, so the HTML only ever holds its own token spans.
   const coloured = useMemo(() => (shown !== null && wanted ? highlightLines(shown.replace(/\r?\n$/, ""), wanted.file) : null), [shown, wanted]);
 
+  /** Opens the file at `line` in the code editor: a version from the history, or the working copy when `at` is null. */
+  const openAt = (at: { rev: string; file: string } | null, line: number) => {
+    const done = at ? api.openRevisionInEditor(repo, at.rev, at.file, loadEditor(), line) : api.openInEditor(repo, [file], loadEditor(), line);
+    void done.catch((e) => useApp.getState().notify("error", errorMessage(e)));
+  };
   const known = useMemo(() => new Set(commits.map((c) => c.sha)), [commits]);
   const openFromBlame = (sha: string) => {
     if (!known.has(sha)) return;
@@ -180,7 +185,17 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
                 {!sel ? (
                   <div className="empty">Select a commit.</div>
                 ) : pane === "diff" ? (
-                  <DiffView text={diff} fileLabel={file} />
+                  <DiffView
+                    text={diff}
+                    fileLabel={file}
+                    openOld={hasParent}
+                    onOpenLine={(side, n) => {
+                      if (!cur) return;
+                      // Old lines are in the commit's parent, under the name the file had before a rename.
+                      if (side === "new") openAt({ rev: cur.sha, file: cur.file }, n);
+                      else if (cur.parents[0]) openAt({ rev: cur.parents[0], file: prev && prev.file !== cur.file ? prev.file : cur.file }, n);
+                    }}
+                  />
                 ) : contentError ? (
                   <ErrorBox text={contentError} compact />
                 ) : shown === null ? (
@@ -189,7 +204,9 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
                   <pre className="fh-file" aria-label="File content">
                     {(coloured ?? shown.replace(/\r?\n$/, "").split(/\r?\n/)).map((line, i) => (
                       <span key={i} className="fh-line">
-                        <span className="blame-no">{i + 1}</span>
+                        <button className="blame-no openable" title={`Open line ${i + 1} in your code editor`} onClick={() => wanted && openAt(wanted, i + 1)}>
+                          {i + 1}
+                        </button>
                         {coloured ? <span dangerouslySetInnerHTML={{ __html: line || " " }} /> : line || " "}
                         {"\n"}
                       </span>
@@ -219,7 +236,9 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
                       {uncommitted ? "Not committed yet" : `${b.author} · ${relativeTime(b.time)} · ${b.sha.slice(0, 7)}`}
                     </button>
                   )}
-                  <span className="blame-no">{b.line}</span>
+                  <button className="blame-no openable" title={`Open line ${b.line} in your code editor`} onClick={() => openAt(req.rev ? { rev: req.rev, file } : null, b.line)}>
+                    {b.line}
+                  </button>
                   <code className="blame-text">{b.text || " "}</code>
                 </div>
               );
