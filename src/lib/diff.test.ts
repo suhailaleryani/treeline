@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPatch, canSelectLines, countChanges, parseDiff } from "./diff";
+import { buildPatch, canSelectLines, countChanges, parseDiff, splitRows, type DiffLine } from "./diff";
 
 const DIFF = [
   "diff --git a/f.txt b/f.txt",
@@ -85,5 +85,19 @@ describe("no-newline hunks", () => {
     expect(canSelectLines(d.hunks[0])).toBe(false);
     expect(buildPatch(d, 0, new Set([3]), false)).toBeNull();
     expect(buildPatch(d, 0, null, false)).not.toBeNull();
+  });
+});
+
+describe("splitRows", () => {
+  const line = (type: "ctx" | "add" | "del", text: string): DiffLine => ({ type, text, oldNo: null, newNo: null });
+  it("puts an unchanged line on both sides and pairs removed lines with the added ones after them", () => {
+    const rows = splitRows([line("ctx", "a"), line("del", "b"), line("del", "c"), line("add", "B"), line("ctx", "d")]);
+    expect(rows.map((r) => [r.left?.line.text ?? null, r.right?.line.text ?? null])).toEqual([["a", "a"], ["b", "B"], ["c", null], ["d", "d"]]);
+    expect(rows[1].left?.idx).toBe(1);
+    expect(rows[1].right?.idx).toBe(3);
+  });
+  it("leaves the old side empty for lines that were only added", () => {
+    const rows = splitRows([line("add", "x"), line("add", "y")]);
+    expect(rows.map((r) => [r.left, r.right?.line.text])).toEqual([[null, "x"], [null, "y"]]);
   });
 });

@@ -128,3 +128,37 @@ export function countChanges(diff: ParsedDiff): { added: number; removed: number
     }
   return { added, removed };
 }
+
+/** One row of a side-by-side diff: the old line on the left, the new line on the right (either may be empty). */
+export interface SplitRow {
+  left: { line: DiffLine; idx: number } | null;
+  right: { line: DiffLine; idx: number } | null;
+}
+
+/**
+ * Lays a hunk's lines out in two columns. An unchanged line shows on both sides; a run of removed lines is set beside
+ * the run of added lines that follows it, and the shorter side is padded with empty cells. `idx` is the line's position
+ * in `lines`, so a click on a cell can select the same line as in the one-column view.
+ */
+export function splitRows(lines: DiffLine[]): SplitRow[] {
+  const rows: SplitRow[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    if (lines[i].type === "ctx") {
+      rows.push({ left: { line: lines[i], idx: i }, right: { line: lines[i], idx: i } });
+      i++;
+      continue;
+    }
+    const dels: number[] = [];
+    const adds: number[] = [];
+    while (i < lines.length && lines[i].type === "del") dels.push(i++);
+    while (i < lines.length && lines[i].type === "add") adds.push(i++);
+    for (let k = 0; k < Math.max(dels.length, adds.length); k++) {
+      rows.push({
+        left: k < dels.length ? { line: lines[dels[k]], idx: dels[k] } : null,
+        right: k < adds.length ? { line: lines[adds[k]], idx: adds[k] } : null,
+      });
+    }
+  }
+  return rows;
+}

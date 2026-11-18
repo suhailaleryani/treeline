@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { buildPatch, canSelectLines, countChanges, isChange, parseDiff } from "../lib/diff";
+import { buildPatch, canSelectLines, countChanges, isChange, parseDiff, splitRows } from "../lib/diff";
+import { Icon } from "./Icon";
 
 export type PatchKind = "stage" | "unstage" | "discard";
 
@@ -15,6 +16,15 @@ interface Props {
 }
 
 const MAX_LINES = 4000;
+const SPLIT_KEY = "diff-side-by-side";
+
+function loadSplit(): boolean {
+  try {
+    return localStorage.getItem(SPLIT_KEY) === "1";
+  } catch {
+    return false; // storage unavailable: one column
+  }
+}
 const LABEL: Record<PatchKind, string> = { stage: "Stage", unstage: "Unstage", discard: "Discard" };
 
 export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Props) {
@@ -23,6 +33,16 @@ export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Pr
   // selected line keys: "hunk:line"
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
+  // Side by side or one column; the choice is kept for every diff and across restarts.
+  const [split, setSplit] = useState(loadSplit);
+  const toggleSplit = () => {
+    setSplit(!split);
+    try {
+      localStorage.setItem(SPLIT_KEY, split ? "0" : "1");
+    } catch {
+      /* not remembered across restarts */
+    }
+  };
   useEffect(() => {
     setSel(new Set());
     setShowAll(false);
@@ -54,6 +74,15 @@ export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Pr
         <span className="diff-file">{fileLabel}</span>
         <span className="stat add">+{stats.added}</span>
         <span className="stat del">−{stats.removed}</span>
+        <button
+          className={`icon-btn${split ? " on" : ""}`}
+          onClick={toggleSplit}
+          aria-pressed={split}
+          aria-label="Side by side"
+          title={split ? "Side by side: on. Click for one column" : "Show the old and new file side by side"}
+        >
+          <Icon name="columns" size={16} />
+        </button>
       </div>
       <div className="diff-body">
         {diff.hunks.map((h, hi) => {
@@ -101,6 +130,38 @@ export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Pr
                   </span>
                 )}
               </div>
+              {split ? (
+                <table className="lines split">
+                  <tbody>
+                    {splitRows(lines).map((row, ri) => {
+                      const cell = (side: "left" | "right") => {
+                        const c = row[side];
+                        if (!c) return [<td key="n" className="num" />, <td key="c" className="code blank" />];
+                        const { line, idx } = c;
+                        const on = sel.has(`${hi}:${idx}`);
+                        const pickable = selectable && isChange(line);
+                        return [
+                          <td key="n" className={`num ${line.type}${on ? " picked" : ""}`}>{(side === "left" ? line.oldNo : line.newNo) ?? ""}</td>,
+                          <td
+                            key="c"
+                            className={`code ${line.type}${on ? " picked" : ""}`}
+                            onClick={pickable ? () => toggle(hi, idx) : undefined}
+                          >
+                            {pickable && <input type="checkbox" tabIndex={-1} readOnly checked={on} aria-label="Select line" />}
+                            {line.text || " "}
+                          </td>,
+                        ];
+                      };
+                      return (
+                        <tr key={ri}>
+                          {cell("left")}
+                          {cell("right")}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
               <table className="lines">
                 <tbody>
                   {lines.map((l, li) => {
@@ -125,6 +186,7 @@ export function DiffView({ text, actions = [], onPatch, loading, fileLabel }: Pr
                   })}
                 </tbody>
               </table>
+              )}
             </section>
           );
         })}
