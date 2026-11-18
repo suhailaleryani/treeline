@@ -6,6 +6,7 @@ import { computeGraph, reachableFrom, type GraphRow } from "../lib/graph";
 import { DATE_FORMATS, classifyRef, formatListDate, fullDate, splitPath } from "../lib/format";
 import { graphWidths, historyListHeights } from "../lib/paneSize";
 import { DATE_RANGES, authorsOf, dateFilterActive, dateWindow, filtersActive, noFilters, type DateRange } from "../lib/historyFilter";
+import { loadEditor } from "../lib/editor";
 import { useApp } from "../store";
 import { openMenu, setDateFormat, useUi } from "../uiStore";
 import type { Commit, CommitDetail, FileEntry, Tab } from "../types";
@@ -517,6 +518,8 @@ function CommitDetailPane({
   const path = tab.path!;
   const notify = useApp.getState().notify;
   const a = repoActions(tab.id);
+  /** Opens the working copy of a file from this commit in the code editor chosen in Settings. */
+  const openInEditor = (f: FileEntry) => api.openInEditor(path, [f.path], loadEditor()).catch((e) => notify("error", errorMessage(e)));
   const [detail, setDetail] = useState<CommitDetail | null>(null);
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [file, setFile] = useState<FileEntry | null>(null);
@@ -616,6 +619,22 @@ function CommitDetailPane({
         />
         <h3 className="list-title">
           Changed files <span className="count">{files.length}</span>
+          {file && (
+            <>
+              <button
+                className="icon-btn"
+                style={{ marginLeft: "auto" }}
+                onClick={() => useUi.setState({ fileHistory: { repo: path, file: file.path, mode: "history" } })}
+                aria-label="File history"
+                title="File history: every commit that changed this file"
+              >
+                <Icon name="history" size={16} />
+              </button>
+              <button className="icon-btn" onClick={() => openInEditor(file)} aria-label="Open in code editor" title="Open in code editor: this file's working copy">
+                <Icon name="code" size={16} />
+              </button>
+            </>
+          )}
         </h3>
         <ul className="file-lists">
           {files.map((f) => {
@@ -629,6 +648,7 @@ function CommitDetailPane({
                 onContextMenu={(e) =>
                   openMenu(e, [
                     { label: "File history…", onClick: () => useUi.setState({ fileHistory: { repo: path, file: f.path, mode: "history" } }) },
+                    { label: "Open in code editor", onClick: () => openInEditor(f) },
                     {
                       label: "Blame at this commit…",
                       disabled: f.status === "D",

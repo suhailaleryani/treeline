@@ -3,8 +3,12 @@ import { api, errorMessage } from "../api";
 import { fullDate, relativeTime } from "../lib/format";
 import type { FileHistoryRequest } from "../uiStore";
 import type { BlameLine, FileCommit } from "../types";
+import { loadEditor } from "../lib/editor";
+import { highlightLines } from "../lib/highlight";
+import { useApp } from "../store";
 import { DiffView } from "./DiffView";
 import { ErrorBox } from "./ErrorBox";
+import { Icon } from "./Icon";
 import { Modal } from "./Modal";
 
 const PAGE = 200;
@@ -13,6 +17,8 @@ const UNCOMMITTED = /^0+$/;
 /** History of one file ("Log Selected…") and who last changed each line ("Blame"). */
 export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; onClose: () => void }) {
   const { repo, file } = req;
+  /** Opens the file as it is in the working folder now in the code editor chosen in Settings. */
+  const openInEditor = () => api.openInEditor(repo, [file], loadEditor()).catch((e) => useApp.getState().notify("error", errorMessage(e)));
   const [mode, setMode] = useState(req.mode);
   const [commits, setCommits] = useState<FileCommit[]>([]);
   const [done, setDone] = useState(false);
@@ -103,6 +109,9 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
     };
   }, [repo, wanted]);
   const shown = wanted && content?.key === `${wanted.rev}:${wanted.file}` ? content.text : null;
+  // The file's lines coloured by language (by the name it had at that commit); null = show plain text.
+  // highlight.js escapes the file's text, so the HTML only ever holds its own token spans.
+  const coloured = useMemo(() => (shown !== null && wanted ? highlightLines(shown.replace(/\r?\n$/, ""), wanted.file) : null), [shown, wanted]);
 
   const known = useMemo(() => new Set(commits.map((c) => c.sha)), [commits]);
   const openFromBlame = (sha: string) => {
@@ -178,10 +187,10 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
                   <p className="muted small pad">Loading…</p>
                 ) : (
                   <pre className="fh-file" aria-label="File content">
-                    {shown.replace(/\r?\n$/, "").split(/\r?\n/).map((line, i) => (
+                    {(coloured ?? shown.replace(/\r?\n$/, "").split(/\r?\n/)).map((line, i) => (
                       <span key={i} className="fh-line">
                         <span className="blame-no">{i + 1}</span>
-                        {line || " "}
+                        {coloured ? <span dangerouslySetInnerHTML={{ __html: line || " " }} /> : line || " "}
                         {"\n"}
                       </span>
                     ))}
@@ -218,6 +227,19 @@ export function FileHistoryDialog({ req, onClose }: { req: FileHistoryRequest; o
           </div>
         )}
         <div className="modal-actions">
+          {mode === "history" && wanted && shown !== null && (
+            <button
+              className="btn"
+              onClick={() => api.openRevisionInEditor(repo, wanted.rev, wanted.file, loadEditor()).catch((e) => useApp.getState().notify("error", errorMessage(e)))}
+              aria-label="Open this version in code editor"
+              title={`Open in code editor: the version shown here (${pane === "after" ? "at" : "before"} commit ${cur?.sha.slice(0, 7)}) as a read-only copy in your code editor`}
+            >
+              <Icon name="code" size={14} /> <Icon name="history" size={14} />
+            </button>
+          )}
+          <button className="btn" onClick={openInEditor} aria-label="Open the current file in code editor" title="Open in code editor: the file as it is in your working folder now">
+            <Icon name="code" size={14} />
+          </button>
           <button className="btn" onClick={onClose}>
             Close
           </button>

@@ -1982,6 +1982,12 @@ pub fn open_in_editor(path: String, files: Vec<String>, editor: String) -> Resul
     if targets.is_empty() {
         return Err("Choose a file.".into());
     }
+    launch_editor(&editor, Some((&path, &root)), &targets)
+}
+
+/// Starts the editor (or, with `editor` empty, the system's default program) on `targets`. With a `folder`, the editor
+/// opens that whole folder with the files open in it.
+fn launch_editor(editor: &str, folder: Option<(&str, &std::path::PathBuf)>, targets: &[std::path::PathBuf]) -> Result<(), String> {
     // `canonicalize` gives `\?\C:\…` on Windows, which not every editor accepts.
     let plain = |p: &std::path::PathBuf| p.to_string_lossy().trim_start_matches(r"\?\").to_string();
 
@@ -2022,10 +2028,12 @@ pub fn open_in_editor(path: String, files: Vec<String>, editor: String) -> Resul
     };
     #[cfg(not(target_os = "windows"))]
     let mut cmd = std::process::Command::new(program);
-    cmd.current_dir(&path);
-    // The folder first, then the files: the editor opens the whole repository with those files open in it.
-    cmd.arg(plain(&root));
-    for t in &targets {
+    if let Some((dir, root)) = folder {
+        cmd.current_dir(dir);
+        // The folder first, then the files: the editor opens the whole repository with those files open in it.
+        cmd.arg(plain(root));
+    }
+    for t in targets {
         cmd.arg(plain(t));
     }
     cmd.spawn().map(|_| ()).map_err(|e| {
@@ -2035,6 +2043,46 @@ pub fn open_in_editor(path: String, files: Vec<String>, editor: String) -> Resul
             e.to_string()
         }
     })
+}
+
+/// Opens a file as it was at a commit in the code editor. The version is written to a read-only copy in the
+/// system's temporary folder (named like `name@abc1234.ext`); the working folder is never touched.
+#[tauri::command]
+pub async fn open_revision_in_editor(path: String, rev: String, file: String, editor: String) -> Result<(), String> {
+    blocking(move || {
+        ensure_allowed(&path)?;
+        ref_arg(&rev)?;
+        if rev.is_empty() || file.is_empty() || file.contains(' ') {
+            return Err("Choose a commit and a file.".into());
+        }
+        let text = run_git(&path, [LITERAL.to_string(), "show".into(), format!("{rev}:{file}")])?;
+        if text.contains(' ') {
+            return Err("This file is binary, so it cannot be opened as text.".into());
+        }
+        let clean = |s: &str| s.chars().map(|c| if c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '_' { c } else { '_' }).collect::<String>();
+        let base = clean(file.rsplit('/').next().unwrap_or("file"));
+        let short = clean(&rev.chars().take(7).collect::<String>());
+        let name = match base.rsplit_once('.') {
+            Some((stem, ext)) if !stem.is_empty() => format!("{stem}@{short}.{ext}"),
+            _ => format!("{base}@{short}"),
+        };
+        let dir = std::env::temp_dir().join("treeline-versions");
+        fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let target = dir.join(name);
+        if let Ok(meta) = fs::metadata(&target) {
+            let mut perm = meta.permissions();
+            perm.set_readonly(false);
+            let _ = fs::set_permissions(&target, perm);
+        }
+        fs::write(&target, text).map_err(|e| e.to_string())?;
+        if let Ok(meta) = fs::metadata(&target) {
+            let mut perm = meta.permissions();
+            perm.set_readonly(true);
+            let _ = fs::set_permissions(&target, perm);
+        }
+        launch_editor(editor.trim(), None, &[target])
+    })
+    .await
 }
 
 /// One line of a file together with the commit that last changed it.

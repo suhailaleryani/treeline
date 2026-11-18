@@ -183,6 +183,8 @@ export const api = {
   reveal: (path: string) => invoke<void>("reveal_in_file_manager", { path }),
   /** Opens the repository folder in a code editor, with these files open. */
   openInEditor: (path: string, files: string[], editor: string) => invoke<void>("open_in_editor", { path, files, editor }),
+  /** Opens a file as it was at a commit in a code editor, as a read-only copy outside the repository. */
+  openRevisionInEditor: (path: string, rev: string, file: string, editor: string) => invoke<void>("open_revision_in_editor", { path, rev, file, editor }),
   terminal: (path: string) => invoke<void>("open_terminal", { path }),
   newWindow: () => invoke<void>("open_new_window"),
   openProjectPage: () => invoke<void>("open_project_page"),

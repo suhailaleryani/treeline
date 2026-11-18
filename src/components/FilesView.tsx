@@ -466,8 +466,8 @@ export function FilesView({ tab }: { tab: Tab }) {
           <div className="files-right-col">
             <div className="right-bar">
               <span className="muted small grow">{multiFiles.length} files selected</span>
-              <button className="btn tiny" onClick={() => openEditor(multiFiles)} title="Open the repository in your code editor with these files open">
-                Open in code editor
+              <button className="icon-btn" onClick={() => openEditor(multiFiles)} aria-label="Open in code editor" title="Open in code editor: the repository opens with these files open">
+                <Icon name="code" size={16} />
               </button>
             </div>
             <div className="right-fill multi-diffs">
@@ -492,19 +492,21 @@ export function FilesView({ tab }: { tab: Tab }) {
               <span className="muted small grow ellipsis" title={shown.path}>{shown.path}</span>
               {!shown.untracked && !shown.path.endsWith("/") && (
                 <button
-                  className="btn tiny"
+                  className="icon-btn"
                   onClick={() => useUi.setState({ fileHistory: { repo: path, file: shown.path, mode: "history" } })}
-                  title="Every commit that changed this file"
+                  aria-label="File history"
+                  title="File history: every commit that changed this file"
                 >
-                  File history
+                  <Icon name="history" size={16} />
                 </button>
               )}
               <button
-                className="btn tiny"
+                className="icon-btn"
                 onClick={() => openEditor(files.filter((f) => f.path === shown.path))}
-                title="Open the repository in your code editor with this file open"
+                aria-label="Open in code editor"
+                title="Open in code editor: the repository opens with this file open"
               >
-                Open in code editor
+                <Icon name="code" size={16} />
               </button>
             </div>
             <div className="right-fill">
