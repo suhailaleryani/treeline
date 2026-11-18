@@ -54,6 +54,24 @@
 </ul>
 <p>Click a file to see its changes on the right. Colours: green = added, red = removed.
 Badges: <strong>M</strong> modified, <strong>A</strong> added, <strong>D</strong> deleted, <strong>R</strong> renamed, <strong>U</strong> untracked, <strong>!</strong> conflict.</p>
+<p>The columns icon in the diff header shows the old and new file <strong>side by side</strong> instead of in one column. Removed lines sit
+beside the added lines that replace them, and long lines wrap. Line staging works in both layouts, and the choice is
+remembered.</p>
+<ul>
+<li><strong>Several files at once:</strong> select them with Ctrl/Shift-click, by dragging, or with Ctrl+A. The right side then shows the
+changes of every selected file, one under the other.</li>
+<li><strong>Open in your code editor:</strong> click the code icon (<code>&lt;/&gt;</code>) on the right (the clock icon next to it opens the file&#39;s history), or right-click a file (or a selection) →
+<em>Open in code editor</em>. This opens the whole repository in the editor with those files open. Choose the editor in
+<strong>Settings → Code editor</strong> (VS Code is the default). Its command must be on your PATH. Deleted files are skipped.
+In <strong>History</strong>, select a commit&#39;s changed file and use the same icon, or right-click it → <em>Open in code editor</em>. This
+opens the file as it is in your working folder now, not as it was in that commit. In the file history dialog, the code icon at the bottom does the same, and while you are looking at
+<strong>File at this commit</strong> or <strong>File before it</strong>, the code-and-clock icon next to it opens that version as a read-only
+copy (named like <code>app@abc1234.ts</code>) in your computer&#39;s temporary folder. Your working folder is not touched.</li>
+<li><strong>Open at a line:</strong> click a line number in a diff, in <strong>File at this commit</strong> or <strong>File before it</strong>, or in Blame to open that
+exact line in your editor. In a commit&#39;s diff, a number on the new side opens the file as it is in that commit, and a number
+on the old side opens it as it was before; in the file status view it opens your working copy. VS Code and its relatives,
+Sublime Text, Zed, the JetBrains editors and Notepad++ jump to the line; the system default program opens the file only.</li>
+</ul>
 <h3 id="52-stage-and-unstage">5.2 Stage and unstage</h3>
 <p><img src="../assets/line-staging.png" alt="A diff with three added lines ticked and a highlighted Stage 3 lines button in the hunk header."></p>
 <ul>
