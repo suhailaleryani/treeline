@@ -1945,6 +1945,98 @@ pub async fn file_log(path: String, file: String, skip: u32, limit: u32) -> Resu
     .await
 }
 
+/// Editors Treeline can open a file in. The front end names one of these; it never supplies a command line.
+/// `(name, program)`: on Windows most editors are `.cmd` shims, which Rust starts with proper argument quoting.
+const EDITORS: &[(&str, &str)] = &[
+    ("code", "code"),
+    ("code-insiders", "code-insiders"),
+    ("cursor", "cursor"),
+    ("windsurf", "windsurf"),
+    ("codium", "codium"),
+    ("subl", "subl"),
+    ("zed", "zed"),
+    ("idea", "idea"),
+    ("webstorm", "webstorm"),
+    ("pycharm", "pycharm"),
+    ("notepad++", "notepad++"),
+];
+
+/// Opens files from the repository in a code editor (or, with `editor` empty, the system's default program).
+#[tauri::command]
+pub fn open_in_editor(path: String, files: Vec<String>, editor: String) -> Result<(), String> {
+    ensure_allowed(&path)?;
+    require_existing_folder(&path)?;
+    let root = Path::new(&path).canonicalize().map_err(|e| e.to_string())?;
+    let mut targets: Vec<std::path::PathBuf> = Vec::new();
+    for f in &files {
+        if f.is_empty() || f.contains('\0') {
+            return Err("Choose a file.".into());
+        }
+        let full = Path::new(&path).join(f);
+        let real = full.canonicalize().map_err(|_| format!("{f} does not exist in the working folder."))?;
+        if !real.starts_with(&root) || !real.is_file() {
+            return Err(format!("{f} is not a file in this repository."));
+        }
+        targets.push(real);
+    }
+    if targets.is_empty() {
+        return Err("Choose a file.".into());
+    }
+    // `canonicalize` gives `\?\C:\…` on Windows, which not every editor accepts.
+    let plain = |p: &std::path::PathBuf| p.to_string_lossy().trim_start_matches(r"\?\").to_string();
+
+    let editor = editor.trim();
+    if editor.is_empty() {
+        #[cfg(target_os = "windows")]
+        let mut cmd = {
+            use std::os::windows::process::CommandExt;
+            let mut c = std::process::Command::new("cmd.exe");
+            // `start` opens each file with the program Windows has chosen for it; the empty "" is the window title.
+            c.args(["/C", "start", ""]).arg(plain(&targets[0])).creation_flags(0x0800_0000);
+            c
+        };
+        #[cfg(target_os = "macos")]
+        let mut cmd = {
+            let mut c = std::process::Command::new("open");
+            c.arg(&targets[0]);
+            c
+        };
+        #[cfg(all(unix, not(target_os = "macos")))]
+        let mut cmd = {
+            let mut c = std::process::Command::new("xdg-open");
+            c.arg(&targets[0]);
+            c
+        };
+        return cmd.spawn().map(|_| ()).map_err(|e| e.to_string());
+    }
+
+    let Some((_, program)) = EDITORS.iter().find(|(name, _)| *name == editor) else {
+        return Err("That editor is not supported.".into());
+    };
+    #[cfg(target_os = "windows")]
+    let mut cmd = {
+        use std::os::windows::process::CommandExt;
+        let mut c = std::process::Command::new(format!("{program}.cmd"));
+        c.creation_flags(0x0800_0000); // CREATE_NO_WINDOW: no console flash for the .cmd shim
+        c
+    };
+    #[cfg(not(target_os = "windows"))]
+    let mut cmd = std::process::Command::new(program);
+    cmd.current_dir(&path);
+    // The folder first, then the files: the editor opens the whole repository with those files open in it.
+    cmd.arg(plain(&root));
+    for t in &targets {
+        cmd.arg(plain(t));
+    }
+    cmd.spawn().map(|_| ()).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            format!("Could not start “{program}”. Is it installed and on your PATH? (For VS Code: Command Palette → “Shell Command: Install 'code' command in PATH”.)")
+        } else {
+            e.to_string()
+        }
+    })
+}
+
 /// One line of a file together with the commit that last changed it.
 #[derive(Serialize, Debug)]
 pub struct BlameLine {

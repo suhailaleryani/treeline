@@ -101,6 +101,7 @@ pub fn run() {
             ops::git_log,
             ops::git_log_matches,
             ops::file_log,
+            ops::open_in_editor,
             ops::git_blame,
             ops::list_refs,
             ops::checkout,

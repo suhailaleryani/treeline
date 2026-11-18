@@ -19,3 +19,7 @@ menu, submodule tabs grouped with their parent, clicking a branch selects its la
 messages, a clearer push dialog, and **Sync and bump pointers**. They are described in `docs/USER_GUIDE.md`.
 
 Also built: **open a file at a commit** (or just before it) from the file history.
+
+Built later: **changes of all selected files** shown one under the other on the right of the file status view, and
+**open in code editor** from the file list (the editor is chosen in Settings → Code editor). Opening a file in the editor
+from the file history is not built.

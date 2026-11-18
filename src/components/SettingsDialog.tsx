@@ -11,6 +11,7 @@ import { useAppVersion } from "../hooks";
 import { openGuide } from "../guide";
 import { checkForUpdate, installUpdate } from "../updater";
 import type { GitInfo, ThemeMode } from "../types";
+import { EDITOR_CHOICES, loadEditor, saveEditor } from "../lib/editor";
 import { FETCH_SECOND_CHOICES, fetchSecondsLabel, loadFetchSeconds, saveFetchSeconds } from "../lib/autoFetch";
 
 type UpdateState =
@@ -45,6 +46,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [installError, setInstallError] = useState<string | null>(null);
   const [fetchSeconds, setFetchSeconds] = useState(loadFetchSeconds);
+  const [editor, setEditor] = useState(loadEditor);
   const found = useUi((s) => s.update);
   const [upd, setUpd] = useState<UpdateState>(found ? { kind: "available", update: found } : { kind: "idle" });
 
@@ -211,6 +213,30 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           {fetchSeconds > 0 && fetchSeconds < 60 && (
             <p className="warn-text small">Very short intervals use more network and battery, and some servers limit how often you may contact them.</p>
           )}
+        </Section>
+
+        <Section
+          icon="code"
+          title="Code editor"
+          hint="Used by “Open in code editor” in the file list. It opens the whole repository with the chosen file open. The editor's command must be on your PATH."
+        >
+          <label className="set-row">
+            <span className="small">Editor</span>
+            <select
+              value={editor}
+              aria-label="Code editor"
+              onChange={(e) => {
+                setEditor(e.target.value);
+                saveEditor(e.target.value);
+              }}
+            >
+              {EDITOR_CHOICES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </Section>
 
         <Section icon="sun" title="Appearance">

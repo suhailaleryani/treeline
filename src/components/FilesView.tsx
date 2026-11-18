@@ -11,6 +11,7 @@ import { latestMessages, loadMessages, mostUsedMessages, recordMessage, saveMess
 import type { FileChange, Tab } from "../types";
 import { ConflictResolver } from "./ConflictResolver";
 import { DiffView, type PatchKind } from "./DiffView";
+import { loadEditor } from "../lib/editor";
 import { Icon } from "./Icon";
 
 function badge(f: FileChange, staged: boolean): { code: string; kind: string; title: string } {
@@ -216,6 +217,14 @@ export function FilesView({ tab }: { tab: Tab }) {
     });
   };
 
+  /** Opens the whole repository in the code editor chosen in Settings, with these files open. */
+  const openEditor = (fs: FileChange[]) => {
+    const deleted = (f: FileChange) => (f.index === "D" || f.worktree === "D") && !f.untracked;
+    const paths = fs.filter((f) => !deleted(f) && !f.path.endsWith("/")).map((f) => f.path);
+    if (!paths.length) return notify("error", "These files no longer exist in the working folder.");
+    api.openInEditor(path, paths, loadEditor()).catch((e) => notify("error", errorMessage(e)));
+  };
+
   const fileMenu = (e: React.MouseEvent, f: FileChange, kind: FileSel["kind"]) => {
     const fs = targets(f, kind);
     const n = fs.length > 1 ? ` ${fs.length} files` : "";
@@ -226,6 +235,7 @@ export function FilesView({ tab }: { tab: Tab }) {
       ...(kind === "unstaged" ? [{ label: `Discard changes${n}…`, danger: true, onClick: () => discard(fs) }] : []),
       { separator: true },
       { label: "Copy path", onClick: () => a.copy(fs.map((x) => x.path).join("\n")) },
+      { label: `Open${n} in code editor`, onClick: () => openEditor(fs) },
       ...(f.untracked || fs.length > 1
         ? []
         : [
@@ -287,6 +297,27 @@ export function FilesView({ tab }: { tab: Tab }) {
 
   // The right pane follows the selection: a file that is not selected any more (or never was) shows nothing.
   const shown = sel && (sel.kind === "conflict" || (multi?.kind === sel.kind && pickedPaths.has(sel.path))) ? sel : null;
+
+  // With several files selected, the right pane shows the changes of every one of them, one under the other.
+  const multiFiles = multi && pickedPaths.size > 1 ? pickedFiles(multi.kind) : [];
+  const multiKey = multi ? `${multi.kind}:${multiFiles.map((f) => `${f.path}|${f.untracked ? 1 : 0}`).join("|")}` : "";
+  const [multiDiffs, setMultiDiffs] = useState<{ key: string; items: { path: string; text: string }[] } | null>(null);
+  useEffect(() => {
+    if (multiFiles.length < 2 || !multi) return;
+    let live = true;
+    const kind = multi.kind;
+    Promise.all(
+      multiFiles.map((f) =>
+        f.path.endsWith("/") ? Promise.resolve({ path: f.path, text: "" }) : api.fileDiff(path, f.path, kind === "staged", f.untracked, 3).then((text) => ({ path: f.path, text })),
+      ),
+    )
+      .then((items) => live && setMultiDiffs({ key: multiKey, items }))
+      .catch((e) => live && notify("error", errorMessage(e)));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [multiKey, status]);
 
   /** Arrow keys move through the rows in display order (conflicts, staged, unstaged); Shift extends the selection within a list. */
   const arrowNav = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -431,14 +462,61 @@ export function FilesView({ tab }: { tab: Tab }) {
       <div className="files-right">
         {shown?.kind === "conflict" ? (
           <ConflictResolver key={shown.path} tab={tab} file={shown.path} />
+        ) : multiFiles.length > 1 ? (
+          <div className="files-right-col">
+            <div className="right-bar">
+              <span className="muted small grow">{multiFiles.length} files selected</span>
+              <button className="btn tiny" onClick={() => openEditor(multiFiles)} title="Open the repository in your code editor with these files open">
+                Open in code editor
+              </button>
+            </div>
+            <div className="right-fill multi-diffs">
+              {multiDiffs?.key !== multiKey ? (
+                <div className="empty">Loading diffs…</div>
+              ) : (
+                multiDiffs.items.map((it) => (
+                  <DiffView
+                    key={it.path}
+                    text={it.text}
+                    fileLabel={it.path}
+                    actions={multi!.kind === "staged" ? ["unstage"] : multiFiles.find((f) => f.path === it.path)?.untracked ? [] : ["stage", "discard"]}
+                    onPatch={onPatch}
+                  />
+                ))
+              )}
+            </div>
+          </div>
         ) : shown ? (
-          <DiffView
-            text={diffText}
-            loading={diffLoading}
-            fileLabel={shown.path}
-            actions={shown.untracked ? [] : shown.kind === "staged" ? ["unstage"] : ["stage", "discard"]}
-            onPatch={onPatch}
-          />
+          <div className="files-right-col">
+            <div className="right-bar">
+              <span className="muted small grow ellipsis" title={shown.path}>{shown.path}</span>
+              {!shown.untracked && !shown.path.endsWith("/") && (
+                <button
+                  className="btn tiny"
+                  onClick={() => useUi.setState({ fileHistory: { repo: path, file: shown.path, mode: "history" } })}
+                  title="Every commit that changed this file"
+                >
+                  File history
+                </button>
+              )}
+              <button
+                className="btn tiny"
+                onClick={() => openEditor(files.filter((f) => f.path === shown.path))}
+                title="Open the repository in your code editor with this file open"
+              >
+                Open in code editor
+              </button>
+            </div>
+            <div className="right-fill">
+              <DiffView
+                text={diffText}
+                loading={diffLoading}
+                fileLabel={shown.path}
+                actions={shown.untracked ? [] : shown.kind === "staged" ? ["unstage"] : ["stage", "discard"]}
+                onPatch={onPatch}
+              />
+            </div>
+          </div>
         ) : files.length > 0 ? (
           <div className="empty">
             <Icon name="check" size={28} />

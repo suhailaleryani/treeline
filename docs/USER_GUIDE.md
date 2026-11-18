@@ -298,6 +298,12 @@ Open **File status** (sidebar). Files are grouped:
 Click a file to see its changes on the right. Colours: green = added, red = removed.
 Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untracked, **!** conflict.
 
+* **Several files at once:** select them with Ctrl/Shift-click, by dragging, or with Ctrl+A. The right side then shows the
+  changes of every selected file, one under the other.
+* **Open in your code editor:** click **Open in code editor** on the right, or right-click a file (or a selection) →
+  *Open in code editor*. This opens the whole repository in the editor with those files open. Choose the editor in
+  **Settings → Code editor** (VS Code is the default). Its command must be on your PATH. Deleted files are skipped.
+
 ### 5.2 Stage and unstage
 
 ![A diff with three added lines ticked and a highlighted Stage 3 lines button in the hunk header.](../site/assets/line-staging.png)

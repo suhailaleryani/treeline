@@ -789,3 +789,10 @@ body.toolbar-dragging, body.toolbar-dragging * { cursor: grabbing !important; }
 .set-star .btn .icon { color: var(--warn); }
 .set-row > select { flex: none; max-width: 60%; }
 label.set-row > span { white-space: nowrap; }
+.files-right-col { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.right-bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--border); flex: none; }
+.right-bar .grow { flex: 1; min-width: 0; }
+.right-fill { flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
+.right-fill.multi-diffs { overflow: auto; }
+.multi-diffs .diff { height: auto; border-bottom: 2px solid var(--border); }
+.multi-diffs .diff-body { overflow: visible; }
