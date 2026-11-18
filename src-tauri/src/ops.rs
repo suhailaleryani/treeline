@@ -1963,7 +1963,7 @@ const EDITORS: &[(&str, &str)] = &[
 
 /// Opens files from the repository in a code editor (or, with `editor` empty, the system's default program).
 #[tauri::command]
-pub fn open_in_editor(path: String, files: Vec<String>, editor: String) -> Result<(), String> {
+pub fn open_in_editor(path: String, files: Vec<String>, editor: String, line: Option<u32>) -> Result<(), String> {
     ensure_allowed(&path)?;
     require_existing_folder(&path)?;
     let root = Path::new(&path).canonicalize().map_err(|e| e.to_string())?;
@@ -1982,12 +1982,12 @@ pub fn open_in_editor(path: String, files: Vec<String>, editor: String) -> Resul
     if targets.is_empty() {
         return Err("Choose a file.".into());
     }
-    launch_editor(&editor, Some((&path, &root)), &targets)
+    launch_editor(&editor, Some((&path, &root)), &targets, line)
 }
 
 /// Starts the editor (or, with `editor` empty, the system's default program) on `targets`. With a `folder`, the editor
 /// opens that whole folder with the files open in it.
-fn launch_editor(editor: &str, folder: Option<(&str, &std::path::PathBuf)>, targets: &[std::path::PathBuf]) -> Result<(), String> {
+fn launch_editor(editor: &str, folder: Option<(&str, &std::path::PathBuf)>, targets: &[std::path::PathBuf], line: Option<u32>) -> Result<(), String> {
     // `canonicalize` gives `\?\C:\…` on Windows, which not every editor accepts.
     let plain = |p: &std::path::PathBuf| p.to_string_lossy().trim_start_matches(r"\?\").to_string();
 
@@ -2033,8 +2033,11 @@ fn launch_editor(editor: &str, folder: Option<(&str, &std::path::PathBuf)>, targ
         // The folder first, then the files: the editor opens the whole repository with those files open in it.
         cmd.arg(plain(root));
     }
-    for t in targets {
-        cmd.arg(plain(t));
+    for (i, t) in targets.iter().enumerate() {
+        let at = if i == 0 { line.filter(|n| *n > 0) } else { None };
+        for a in goto_args(program, &plain(t), at) {
+            cmd.arg(a);
+        }
     }
     cmd.spawn().map(|_| ()).map_err(|e| {
         if e.kind() == std::io::ErrorKind::NotFound {
@@ -2045,18 +2048,30 @@ fn launch_editor(editor: &str, folder: Option<(&str, &std::path::PathBuf)>, targ
     })
 }
 
+/// The arguments that open `file`, at `line` when given. Each editor family has its own spelling for "go to line".
+fn goto_args(program: &str, file: &str, line: Option<u32>) -> Vec<String> {
+    let Some(n) = line else { return vec![file.to_string()] };
+    match program {
+        "code" | "code-insiders" | "cursor" | "windsurf" | "codium" => vec!["-g".into(), format!("{file}:{n}")],
+        "subl" | "zed" => vec![format!("{file}:{n}")],
+        "idea" | "webstorm" | "pycharm" => vec!["--line".into(), n.to_string(), file.to_string()],
+        "notepad++" => vec![format!("-n{n}"), file.to_string()],
+        _ => vec![file.to_string()],
+    }
+}
+
 /// Opens a file as it was at a commit in the code editor. The version is written to a read-only copy in the
 /// system's temporary folder (named like `name@abc1234.ext`); the working folder is never touched.
 #[tauri::command]
-pub async fn open_revision_in_editor(path: String, rev: String, file: String, editor: String) -> Result<(), String> {
+pub async fn open_revision_in_editor(path: String, rev: String, file: String, editor: String, line: Option<u32>) -> Result<(), String> {
     blocking(move || {
         ensure_allowed(&path)?;
         ref_arg(&rev)?;
-        if rev.is_empty() || file.is_empty() || file.contains(' ') {
+        if rev.is_empty() || file.is_empty() || file.contains('\0') {
             return Err("Choose a commit and a file.".into());
         }
         let text = run_git(&path, [LITERAL.to_string(), "show".into(), format!("{rev}:{file}")])?;
-        if text.contains(' ') {
+        if text.contains('\0') {
             return Err("This file is binary, so it cannot be opened as text.".into());
         }
         let clean = |s: &str| s.chars().map(|c| if c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '_' { c } else { '_' }).collect::<String>();
@@ -2080,7 +2095,7 @@ pub async fn open_revision_in_editor(path: String, rev: String, file: String, ed
             perm.set_readonly(true);
             let _ = fs::set_permissions(&target, perm);
         }
-        launch_editor(editor.trim(), None, &[target])
+        launch_editor(editor.trim(), None, &[target], line)
     })
     .await
 }
@@ -2190,6 +2205,15 @@ mod tests {
         for bad in ["", "relative/folder", "-a", "--help", "C:/definitely/not/here"] {
             assert!(require_existing_folder(bad).is_err(), "{bad:?}");
         }
+    }
+
+    #[test]
+    fn each_editor_gets_its_own_go_to_line_arguments() {
+        assert_eq!(goto_args("code", "C:/r/a.ts", Some(12)), ["-g", "C:/r/a.ts:12"]);
+        assert_eq!(goto_args("zed", "a.rs", Some(3)), ["a.rs:3"]);
+        assert_eq!(goto_args("idea", "a.java", Some(7)), ["--line", "7", "a.java"]);
+        assert_eq!(goto_args("notepad++", "a.txt", Some(9)), ["-n9", "a.txt"]);
+        assert_eq!(goto_args("code", "a.ts", None), ["a.ts"]);
     }
 
     #[test]
