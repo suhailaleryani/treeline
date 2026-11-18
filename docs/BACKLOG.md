@@ -21,5 +21,5 @@ messages, a clearer push dialog, and **Sync and bump pointers**. They are descri
 Also built: **open a file at a commit** (or just before it) from the file history.
 
 Built later: **changes of all selected files** shown one under the other on the right of the file status view, and
-**open in code editor** from the file list (the editor is chosen in Settings → Code editor). Opening a file in the editor
-from the file history is not built.
+**open in code editor** from the file list and from the changed files of a commit and from the file history dialog, including the version at or before a commit as a read-only copy (the editor is chosen
+in Settings → Code editor).

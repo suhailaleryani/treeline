@@ -298,11 +298,19 @@ Open **File status** (sidebar). Files are grouped:
 Click a file to see its changes on the right. Colours: green = added, red = removed.
 Badges: **M** modified, **A** added, **D** deleted, **R** renamed, **U** untracked, **!** conflict.
 
+The columns icon in the diff header shows the old and new file **side by side** instead of in one column. Removed lines sit
+beside the added lines that replace them, and long lines wrap. Line staging works in both layouts, and the choice is
+remembered.
+
 * **Several files at once:** select them with Ctrl/Shift-click, by dragging, or with Ctrl+A. The right side then shows the
   changes of every selected file, one under the other.
-* **Open in your code editor:** click **Open in code editor** on the right, or right-click a file (or a selection) →
+* **Open in your code editor:** click the code icon (`</>`) on the right (the clock icon next to it opens the file's history), or right-click a file (or a selection) →
   *Open in code editor*. This opens the whole repository in the editor with those files open. Choose the editor in
   **Settings → Code editor** (VS Code is the default). Its command must be on your PATH. Deleted files are skipped.
+  In **History**, select a commit's changed file and use the same icon, or right-click it → *Open in code editor*. This
+  opens the file as it is in your working folder now, not as it was in that commit. In the file history dialog, the code icon at the bottom does the same, and while you are looking at
+  **File at this commit** or **File before it**, the code-and-clock icon next to it opens that version as a read-only
+  copy (named like `app@abc1234.ts`) in your computer's temporary folder. Your working folder is not touched.
 
 ### 5.2 Stage and unstage
 
@@ -378,7 +386,7 @@ Open **History** (sidebar).
 * **History of one file:** right-click a file (in File status, or in a commit's list of changed files) and choose
   **File history…**. You see every commit that changed that file, even before it was renamed, and the change each one
   made.
-* **Open the file at a commit:** in the file history, pick a commit and use **File at this commit** to see the whole file as it was right after that commit, or **File before it** for the version just before it (under its old name if it was renamed). **Changes** goes back to the diff. Binary files cannot be shown as text, and a file over 1 MB is cut off.
+* **Open the file at a commit:** in the file history, pick a commit and use **File at this commit** to see the whole file as it was right after that commit, or **File before it** for the version just before it (under its old name if it was renamed). **Changes** goes back to the diff. Binary files cannot be shown as text, and a file over 1 MB is cut off. Code is coloured by language (for example TypeScript, Rust, Python, JSON, YAML, HTML, CSS, SQL and shell scripts); other files, and very large ones, are shown as plain text.
 
   ![The file history dialog showing the whole file as it was at the selected commit, with line numbers.](../site/assets/file-at-commit.png)
 
