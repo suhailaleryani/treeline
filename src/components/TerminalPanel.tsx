@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSplit } from "../hooks";
-import { applyTerminalTheme, attachTerminal, focusTerminal, refitTerminal } from "../lib/terminalRegistry";
+import { attachTerminal, focusTerminal, refitTerminal } from "../lib/terminalRegistry";
 import { useApp } from "../store";
 import { addTab, closeGroup, closeTab, focusGroup, moveGroup, newGroup, restartTab, selectTab, useTerminals, type Dock, type TermGroup, type TermTab } from "../terminalStore";
 import { useUi } from "../uiStore";
@@ -83,7 +83,6 @@ function GroupView({ group, focused, activePath }: { group: TermGroup; focused: 
  */
 export function TerminalDock({ dock }: { dock: Dock }) {
   const open = useUi((s) => s.terminalOpen);
-  const theme = useApp((s) => s.theme);
   const activePath = useApp((s) => s.tabs.find((t) => t.id === s.activeId)?.path ?? null);
   const all = useTerminals((s) => s.groups);
   const focusedGroup = useTerminals((s) => s.focusedGroup);
@@ -98,8 +97,6 @@ export function TerminalDock({ dock }: { dock: Dock }) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-
-  useEffect(() => applyTerminalTheme(), [theme]);
 
   // Opening the panel with no terminals starts one at the bottom, in the active repository.
   useEffect(() => {

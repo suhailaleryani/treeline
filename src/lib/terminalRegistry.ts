@@ -27,11 +27,47 @@ const earlyExit = new Set<number>();
 const retired = new Set<number>();
 let wired = false;
 
-/** The colours of the current theme, read from the CSS variables so the terminal follows light and dark. */
-function themeColors() {
+/**
+ * The terminal's dark colours: the dark theme's own (`--bg`, `--text`, `--accent`, `--accent-soft` in App.css), with
+ * xterm's default ANSI palette, which is made for a dark background. Used on the dark theme.
+ */
+const DARK_THEME = {
+  background: "#0f1115",
+  foreground: "#e9ebf1",
+  cursor: "#6b97ff",
+  cursorAccent: "#0f1115",
+  selectionBackground: "rgba(107, 151, 255, 0.3)",
+};
+
+/** The 16 ANSI colours for a light background: xterm's defaults (yellow, white, cyan, bright) vanish on white. */
+const LIGHT_ANSI = {
+  black: "#1f2328", red: "#c0262d", green: "#17702f", yellow: "#8a5a00",
+  blue: "#0b57d0", magenta: "#a01ea8", cyan: "#0e7490", white: "#4b5563",
+  brightBlack: "#57606a", brightRed: "#a40e26", brightGreen: "#116329", brightYellow: "#7a4d00",
+  brightBlue: "#0a3fa0", brightMagenta: "#8a1a92", brightCyan: "#0b5f75", brightWhite: "#374151",
+};
+
+/** True when the page shows the light theme: an explicit choice, or "system" on a light OS. */
+function lightTheme() {
+  const chosen = document.documentElement.dataset.theme;
+  return chosen ? chosen === "light" : window.matchMedia?.("(prefers-color-scheme: light)").matches === true;
+}
+
+/**
+ * The terminal's colours: the dark ones, unless the app shows the light theme. Then the light theme's own
+ * colours, read from the CSS variables, with a palette that can be read on them.
+ */
+function terminalColors() {
+  if (!lightTheme()) return DARK_THEME;
   const css = getComputedStyle(document.documentElement);
   const v = (name: string) => css.getPropertyValue(name).trim() || undefined;
-  return { background: v("--bg"), foreground: v("--text"), cursor: v("--accent"), selectionBackground: v("--accent-soft") };
+  const background = v("--bg");
+  return { background, foreground: v("--text"), cursor: v("--accent"), cursorAccent: background, selectionBackground: v("--accent-soft"), ...LIGHT_ANSI };
+}
+
+/** Recolours every open terminal; run whenever the page's theme changes. */
+function applyTerminalTheme() {
+  for (const e of entries.values()) e.term.options.theme = terminalColors();
 }
 
 const ENDED = "\r\n\x1b[2m[The shell has ended. Use Restart here to open a new one.]\x1b[0m\r\n";
@@ -39,6 +75,11 @@ const ENDED = "\r\n\x1b[2m[The shell has ended. Use Restart here to open a new o
 function wire() {
   if (wired) return;
   wired = true;
+  // Follow the theme from the page itself: React runs the terminal's effects before the App effect that sets
+  // `data-theme`, so recolouring from a component would read the previous theme's colours. A "system" theme also
+  // changes with the OS, without any app state changing at all.
+  new MutationObserver(applyTerminalTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener("change", applyTerminalTheme);
   void listen<{ id: number; data: string }>("term-data", ({ payload }) => {
     if (retired.has(payload.id)) return;
     const e = bySession.get(payload.id);
@@ -60,7 +101,10 @@ function entryFor(id: number, path: string): Entry {
   const known = entries.get(id);
   if (known) return known;
   wire();
-  const term = new Terminal({ fontFamily: "Consolas, 'Cascadia Mono', Menlo, monospace", fontSize: 13, cursorBlink: true, scrollback: 5000, scrollOnUserInput: true, theme: themeColors() });
+  const term = new Terminal({ fontFamily: "Consolas, 'Cascadia Mono', Menlo, monospace", fontSize: 13, cursorBlink: true, scrollback: 5000, scrollOnUserInput: true, theme: terminalColors(),
+    // Any text a program colours too close to the background (its own 256 or true colours too) is lightened or
+    // darkened until it can be read: 4.5 is the WCAG contrast for normal text.
+    minimumContrastRatio: 4.5 });
   const fit = new FitAddon();
   term.loadAddon(fit);
   const e: Entry = { term, fit, path, session: null, starting: false, disposed: false, opened: false };
@@ -144,6 +188,3 @@ export function disposeTerminal(id: number) {
   entries.delete(id);
 }
 
-export function applyTerminalTheme() {
-  for (const e of entries.values()) e.term.options.theme = themeColors();
-}
