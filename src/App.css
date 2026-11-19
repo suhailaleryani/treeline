@@ -785,6 +785,8 @@ body.toolbar-dragging, body.toolbar-dragging * { cursor: grabbing !important; }
 .terminal-tab:hover { background: var(--bg-3); }
 .terminal-tab.active { background: var(--bg-4); color: var(--text); }
 .terminal-body { flex: 1; min-height: 0; min-width: 0; overflow: hidden; padding: 4px 0 4px 8px; background: var(--bg); }
+/* Settings → Appearance → "Always dark": keep in step with DARK_THEME in lib/terminalRegistry.ts. */
+:root[data-terminal-dark] .terminal-body { background: #0f1115; color-scheme: dark; }
 .terminal-body .xterm { height: 100%; }
 .terminal-body .xterm-viewport { overflow-y: scroll; overscroll-behavior: contain; }
 

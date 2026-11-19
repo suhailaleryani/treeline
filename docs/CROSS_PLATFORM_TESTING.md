@@ -74,7 +74,7 @@ Tick each line as pass (✅), fail (❌) or skipped (➖). Note anything odd eve
 34. ☐ **Divide** adds a piece beside the first; click each: the blue outline follows. **Move right** on one piece: it jumps to the right side, full height, and the other stays at the bottom; run a command in it first and check the text and the running command survive the move. **Move bottom** brings it back.
 35. ☐ Resize the window and each piece: the shell wraps to the new size (`stty size` on macOS / Linux, `$Host.UI.RawUI.WindowSize` in PowerShell).
 36. ☐ Type `exit`: the tab says the shell has ended; **Restart here** starts a new one. Switch to another repository tab and press **Restart here**: it opens in that repository.
-37. ☐ Switch the theme between light and dark with a terminal open: its colours follow. Open a repository whose folder path contains spaces and non-ASCII characters: the shell still starts there.
+37. ☐ Switch the theme between light and dark with a terminal open: its colours follow, and its text (including yellow and white output) stays readable on the light theme. With Settings → Appearance → “Keep the terminal dark on the light theme” on, it stays dark on both. Open a repository whose folder path contains spaces and non-ASCII characters: the shell still starts there.
 38. ☐ Quit the app with a shell running: no shell or `conpty` / `pty` process is left behind (check Task Manager / `ps`).
 
 ## 2. Report what you found

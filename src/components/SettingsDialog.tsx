@@ -12,6 +12,7 @@ import { openGuide } from "../guide";
 import { checkForUpdate, installUpdate } from "../updater";
 import type { GitInfo, ThemeMode } from "../types";
 import { EDITOR_CHOICES, loadEditor, saveEditor } from "../lib/editor";
+import { loadTerminalAlwaysDark, setTerminalAlwaysDark } from "../lib/terminalRegistry";
 import { FETCH_SECOND_CHOICES, fetchSecondsLabel, loadFetchSeconds, saveFetchSeconds } from "../lib/autoFetch";
 
 type UpdateState =
@@ -47,6 +48,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const [installError, setInstallError] = useState<string | null>(null);
   const [fetchSeconds, setFetchSeconds] = useState(loadFetchSeconds);
   const [editor, setEditor] = useState(loadEditor);
+  const [terminalDark, setTerminalDark] = useState(loadTerminalAlwaysDark);
   const found = useUi((s) => s.update);
   const [upd, setUpd] = useState<UpdateState>(found ? { kind: "available", update: found } : { kind: "idle" });
 
@@ -250,6 +252,17 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           </div>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={terminalDark}
+              onChange={(e) => {
+                setTerminalDark(e.target.checked);
+                setTerminalAlwaysDark(e.target.checked);
+              }}
+            />
+            Keep the terminal dark on the light theme
+          </label>
         </Section>
 
         <Section icon="help" title="About">

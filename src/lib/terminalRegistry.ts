@@ -29,7 +29,8 @@ let wired = false;
 
 /**
  * The terminal's dark colours: the dark theme's own (`--bg`, `--text`, `--accent`, `--accent-soft` in App.css), with
- * xterm's default ANSI palette, which is made for a dark background. Used on the dark theme.
+ * xterm's default ANSI palette, which is made for a dark background. Used on the dark theme, and on every theme when
+ * "Always dark" is on. Keep the background in step with `[data-terminal-dark]` in App.css.
  */
 const DARK_THEME = {
   background: "#0f1115",
@@ -38,6 +39,37 @@ const DARK_THEME = {
   cursorAccent: "#0f1115",
   selectionBackground: "rgba(107, 151, 255, 0.3)",
 };
+
+const ALWAYS_DARK_KEY = "terminal-always-dark";
+
+/** Whether the terminal stays dark on the light theme (Settings → Appearance). Off unless chosen. */
+export function loadTerminalAlwaysDark(): boolean {
+  try {
+    return localStorage.getItem(ALWAYS_DARK_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+let alwaysDark = loadTerminalAlwaysDark();
+
+/** Marks the page so the CSS around the terminal (padding, scrollbar) matches its colours. */
+function markPage() {
+  document.documentElement.toggleAttribute("data-terminal-dark", alwaysDark);
+}
+markPage();
+
+/** Turns "Always dark" on or off, remembers it, and recolours every open terminal at once. */
+export function setTerminalAlwaysDark(on: boolean): void {
+  alwaysDark = on;
+  try {
+    localStorage.setItem(ALWAYS_DARK_KEY, on ? "1" : "0");
+  } catch {
+    /* storage unavailable: the choice lasts until the app closes */
+  }
+  markPage();
+  applyTerminalTheme();
+}
 
 /** The 16 ANSI colours for a light background: xterm's defaults (yellow, white, cyan, bright) vanish on white. */
 const LIGHT_ANSI = {
@@ -54,18 +86,18 @@ function lightTheme() {
 }
 
 /**
- * The terminal's colours: the dark ones, unless the app shows the light theme. Then the light theme's own
- * colours, read from the CSS variables, with a palette that can be read on them.
+ * The terminal's colours: the dark ones, unless the app shows the light theme and "Always dark" is off. Then the light
+ * theme's own colours, read from the CSS variables, with a palette that can be read on them.
  */
 function terminalColors() {
-  if (!lightTheme()) return DARK_THEME;
+  if (alwaysDark || !lightTheme()) return DARK_THEME;
   const css = getComputedStyle(document.documentElement);
   const v = (name: string) => css.getPropertyValue(name).trim() || undefined;
   const background = v("--bg");
   return { background, foreground: v("--text"), cursor: v("--accent"), cursorAccent: background, selectionBackground: v("--accent-soft"), ...LIGHT_ANSI };
 }
 
-/** Recolours every open terminal; run whenever the page's theme changes. */
+/** Recolours every open terminal; run whenever the page's theme or "Always dark" changes. */
 function applyTerminalTheme() {
   for (const e of entries.values()) e.term.options.theme = terminalColors();
 }

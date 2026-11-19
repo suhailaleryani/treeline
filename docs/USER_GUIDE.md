@@ -182,6 +182,8 @@ message explains what to do; the submodule appears greyed-out in the sidebar and
 
   ![The history view in the light theme.](../site/assets/light.png)
 
+* **The terminal follows the theme too**, with colours chosen to stay readable on the light background. If you prefer a dark terminal anyway, turn on **Settings → Appearance → Keep the terminal dark on the light theme**.
+
 * **Command palette** (`Ctrl+K`): type to find any action — Fetch, New branch, Check out *x*, Open bookmark *y*, Run *a custom button*…
 * **This guide is built into the app.** Press `F1` or click the **?** button at the top right. It opens in its own window and works offline. Error panels have a **Learn more** button that opens the
   page on fixing errors, and the command palette has shortcuts to the most useful pages.
