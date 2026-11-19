@@ -88,14 +88,20 @@ fn git_program() -> PathBuf {
     PathBuf::from("git")
 }
 
-pub(crate) fn git_cmd() -> Command {
-    let mut cmd = Command::new(git_program());
+/// A `Command` that never opens a console window on Windows. Every background process the app starts
+/// (git or anything else the user does not need to see) must be built with this, or a black window flashes.
+pub(crate) fn quiet_cmd(program: impl AsRef<OsStr>) -> Command {
+    let mut cmd = Command::new(program);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        // CREATE_NO_WINDOW: never flash a console window.
-        cmd.creation_flags(0x0800_0000);
+        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
     }
+    cmd
+}
+
+pub(crate) fn git_cmd() -> Command {
+    let mut cmd = quiet_cmd(git_program());
     #[cfg(unix)]
     cmd.env(
         "PATH",
@@ -140,7 +146,7 @@ pub struct GitInfo {
 
 fn git_info_now() -> GitInfo {
     let program = git_program();
-    let version = Command::new(&program).arg("--version").output().ok().filter(|o| o.status.success()).map(
+    let version = quiet_cmd(&program).arg("--version").output().ok().filter(|o| o.status.success()).map(
         |o| String::from_utf8_lossy(&o.stdout).trim().to_string(),
     );
     GitInfo {
@@ -155,7 +161,7 @@ pub(crate) fn verify_git(path: &Path) -> Result<String, String> {
     if !path.is_file() {
         return Err("That file does not exist.".into());
     }
-    let out = Command::new(path)
+    let out = quiet_cmd(path)
         .arg("--version")
         .output()
         .map_err(|e| format!("That file could not be run: {e}"))?;
@@ -1213,6 +1219,24 @@ fn last_lines(text: &str, n: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A program started through `quiet_cmd` must not get a console window (the black flash on Windows).
+    /// PowerShell asks Windows for its own console window: with CREATE_NO_WINDOW there is none (handle 0),
+    /// while a child given a new console reports a non-zero handle.
+    #[cfg(windows)]
+    #[test]
+    fn quiet_commands_get_no_console_window() {
+        const SCRIPT: &str = "Add-Type -Name W -Namespace N -MemberDefinition \
+            '[DllImport(\"kernel32.dll\")] public static extern System.IntPtr GetConsoleWindow();'; \
+            [N.W]::GetConsoleWindow().ToInt64()";
+        let window = |mut cmd: Command| {
+            let out = cmd.args(["-NoProfile", "-NonInteractive", "-Command", SCRIPT]).output().unwrap();
+            String::from_utf8_lossy(&out.stdout).trim().parse::<i64>().unwrap()
+        };
+        assert_eq!(window(quiet_cmd("powershell.exe")), 0, "quiet_cmd opened a console window");
+        // git_cmd is built on quiet_cmd; `git --version` must start the same way.
+        assert!(git_cmd().arg("--version").output().unwrap().status.success());
+    }
 
     #[test]
     fn parses_branch_and_changes() {
